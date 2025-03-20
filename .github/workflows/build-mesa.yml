@@ -28,8 +28,10 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
           sudo apt build-dep mesa
-          sudo apt install make cmake g++-arm-linux-gnueabihf g++-aarch64-linux-gnu
-          sudo apt install zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev libwayland-dev wayland-protocols libwayland-egl-backend-dev  
+          sudo apt install -y make cmake \
+                            g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
+                            llvm-dev libclang-dev clang \
+                            zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev libwayland-dev wayland-protocols libwayland-egl-backend-dev  
           sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
