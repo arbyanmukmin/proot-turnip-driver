@@ -75,23 +75,26 @@ build_mesa() {
     meson setup "$BUILD_DIR" \
     --cross-file "$CROSS_FILE" \
     --prefix=/usr \
-    -Dllvm-config=/usr/bin/llvm-config \
-    -Dgbm=true \
-    -Dopengl=true \
-    -Degl=true \
-    -Dgles1=false \
-    -Dgles2=true \
-    -Dglx=dri \
-    -Ddri3=true \
-    -Dllvm=true \
-    -Dshared-llvm=false \
     -Dplatforms=x11,wayland \
-    -Dgallium-drivers=swrast,virgl,zink,freedreno \
-    -Dosmesa=true \
-    -Dglvnd=true \
-    -Dxmlconfig=false \
+    -Dgallium-drivers=freedreno,zink \
     -Dvulkan-drivers=freedreno \
-    -Dfreedreno-kmds=kgsl \
+    -Dfreedreno-kmds=msm,kgsl \
+    -Ddri3=enabled \
+    -Dbuildtype=release \
+    -Dglx=disabled \
+    -Degl=enabled \
+    -Dgles1=disabled \
+    -Dgles2=enabled \
+    -Dopengl=true \
+    -Dshared-glapi=enabled \
+    -Dgbm=enabled \
+    -Dllvm=disabled \
+    -Dshared-llvm=disabled \
+    -Dxmlconfig=disabled \
+    -Db_lto=true \
+    -Db_ndebug=true \
+    -Dcpp_rtti=false \
+    -Dgallium-xa=disabled
     -Dbuildtype=release || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
