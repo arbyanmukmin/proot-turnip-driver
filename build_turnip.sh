@@ -133,11 +133,14 @@ cpp = 'aarch64-linux-gnu-g++'
 ar = 'aarch64-linux-gnu-ar'
 strip = 'aarch64-linux-gnu-strip'
 pkgconfig = 'pkg-config'
-pkg_config_path = '/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig'
+
+[properties]
+sys_root = '/usr/aarch64-linux-gnu'
+pkg_config_libdir = '/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig'
 
 [host_machine]
 system = 'linux'
-cpu_family = 'arm64'
+cpu_family = 'aarch64'
 cpu = 'armv8-a'
 endian = 'little'
 EOF
@@ -152,7 +155,10 @@ cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
 pkgconfig = 'pkg-config'
-pkg_config_path = '/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig'
+
+[properties]
+sys_root = '/usr/arm-linux-gnueabihf'
+pkg_config_libdir = '/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig'
 
 [host_machine]
 system = 'linux'
