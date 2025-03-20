@@ -7,11 +7,11 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 for stable toolchain support
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,6 +21,7 @@ jobs:
           sudo apt update -y
           sudo apt install -y build-essential git meson ninja-build cmake python3 python3-pip \
             wget pkg-config libdrm-dev libexpat1-dev zlib1g-dev \
+            libx11-dev libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-shm0-dev \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
             gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
           pip3 install mako
@@ -58,7 +59,6 @@ jobs:
           ar = 'aarch64-linux-gnu-ar'
           strip = 'aarch64-linux-gnu-strip'
           pkgconfig = 'aarch64-linux-gnu-pkg-config'
-
           [host_machine]
           system = 'linux'
           cpu_family = 'aarch64'
@@ -68,15 +68,21 @@ jobs:
           cd mesa-24.0.2
           meson setup build-aarch64 \
             --cross-file ../cross-aarch64.ini \
-            -Dvulkan-drivers=freedreno \
-            -Dfreedreno-kgsl=true \
-            -Dglx=disabled \
+            -Dgbm=enabled \
+            -Dopengl=true \
             -Degl=enabled \
-            -Dgles1=enabled \
+            -Degl-native-platform=x11 \
+            -Dgles1=disabled \
             -Dgles2=enabled \
-            -Dplatforms=wayland \
-            -Dbuildtype=release \
-            -Dprefix=/usr/local
+            -Ddri3=enabled \
+            -Dglx=dri \
+            -Dllvm=enabled \
+            -Dshared-llvm=disabled \
+            -Dplatforms=x11,wayland \
+            -Dgallium-drivers=swrast,virgl,zink \
+            -Dosmesa=true \
+            -Dglvnd=true \
+            -Dxmlconfig=disabled
 
       - name: Build Mesa for ARM64
         run: |
@@ -99,7 +105,6 @@ jobs:
           ar = 'arm-linux-gnueabihf-ar'
           strip = 'arm-linux-gnueabihf-strip'
           pkgconfig = 'arm-linux-gnueabihf-pkg-config'
-
           [host_machine]
           system = 'linux'
           cpu_family = 'arm'
@@ -109,15 +114,21 @@ jobs:
           cd mesa-24.0.2
           meson setup build-armhf \
             --cross-file ../cross-armhf.ini \
-            -Dvulkan-drivers=freedreno \
-            -Dfreedreno-kgsl=true \
-            -Dglx=disabled \
+            -Dgbm=enabled \
+            -Dopengl=true \
             -Degl=enabled \
-            -Dgles1=enabled \
+            -Degl-native-platform=x11 \
+            -Dgles1=disabled \
             -Dgles2=enabled \
-            -Dplatforms=wayland \
-            -Dbuildtype=release \
-            -Dprefix=/usr/local
+            -Ddri3=enabled \
+            -Dglx=dri \
+            -Dllvm=enabled \
+            -Dshared-llvm=disabled \
+            -Dplatforms=x11,wayland \
+            -Dgallium-drivers=swrast,virgl,zink \
+            -Dosmesa=true \
+            -Dglvnd=true \
+            -Dxmlconfig=disabled
 
       - name: Build Mesa for ARMHF
         run: |
