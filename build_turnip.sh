@@ -13,11 +13,12 @@ GREEN='\033[0;32m'
 WHITE='\033[0;37m'
 RED='\033[0;31m'
 
-echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF...${WHITE}"
+# Get Mesa version from argument or environment variable, default to 24.0.2
+MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
+echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${WHITE}"
 
-# Set working directory and Mesa version
+# Set working directory and Mesa tarball details
 WORK_DIR="$HOME/mesa-cross-build"
-MESA_VERSION="24.0.2"  # Official stable release (adjust as needed)
 MESA_TARBALL="mesa-$MESA_VERSION.tar.xz"
 MESA_URL="https://archive.mesa3d.org/$MESA_TARBALL"
 
@@ -72,7 +73,6 @@ build_mesa() {
 }
 
 # Create cross-compilation config files
-# Use host pkg-config with cross-prefix instead of unavailable cross-specific pkg-config
 cat > "$WORK_DIR/cross-aarch64.ini" << EOF
 [binaries]
 c = 'aarch64-linux-gnu-gcc'
