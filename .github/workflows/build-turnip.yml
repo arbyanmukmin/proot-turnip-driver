@@ -30,6 +30,7 @@ jobs:
                               libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
           "
 
+      # Build Mesa with Turnip support inside the chroot
       - name: Build Mesa in Chroot
         run: |
           sudo chroot /chroot/armhf /bin/bash -c "
@@ -41,15 +42,26 @@ jobs:
             checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
                          --default ninja -C builddir install
           "
-      
-      - name: Set Permissions for ARMHF .deb
-        run: sudo chmod 644 /chroot/armhf/mesa/*.deb
-      
+
+      # Copy the .deb file to the GitHub Actions workspace
+      - name: Copy ARMHF .deb to Workspace
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/artifacts/armhf
+          sudo cp /chroot/armhf/mesa/*.deb $GITHUB_WORKSPACE/artifacts/armhf/
+          sudo chmod 644 $GITHUB_WORKSPACE/artifacts/armhf/*.deb
+
+      # Verify the files exist before uploading
+      - name: Verify ARMHF .deb Files
+        run: |
+          ls -l $GITHUB_WORKSPACE/artifacts/armhf/*.deb || echo "No .deb files found!"
+
+      # Upload the .deb file as an artifact
       - name: Upload ARMHF Artifact
         uses: actions/upload-artifact@v3
         with:
           name: mesa-armhf
-          path: /chroot/armhf/mesa/*.deb
+          path: ${{ github.workspace }}/artifacts/armhf/*.deb
+          if-no-files-found: error
 
   build-arm64:
     runs-on: ubuntu-latest
@@ -77,6 +89,7 @@ jobs:
                               libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
           "
 
+      # Build Mesa with Turnip support inside the chroot
       - name: Build Mesa in Chroot
         run: |
           sudo chroot /chroot/arm64 /bin/bash -c "
@@ -88,12 +101,23 @@ jobs:
             checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
                          --default ninja -C builddir install
           "
-      
-      - name: Set Permissions for ARM64 .deb
-        run: sudo chmod 644 /chroot/arm64/mesa/*.deb
-      
+
+      # Copy the .deb file to the GitHub Actions workspace
+      - name: Copy ARM64 .deb to Workspace
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/artifacts/arm64
+          sudo cp /chroot/arm64/mesa/*.deb $GITHUB_WORKSPACE/artifacts/arm64/
+          sudo chmod 644 $GITHUB_WORKSPACE/artifacts/arm64/*.deb
+
+      # Verify the files exist before uploading
+      - name: Verify ARM64 .deb Files
+        run: |
+          ls -l $GITHUB_WORKSPACE/artifacts/arm64/*.deb || echo "No .deb files found!"
+
+      # Upload the .deb file as an artifact
       - name: Upload ARM64 Artifact
         uses: actions/upload-artifact@v3
         with:
           name: mesa-arm64
-          path: /chroot/arm64/mesa/*.deb
+          path: ${{ github.workspace }}/artifacts/arm64/*.deb
+          if-no-files-found: error
