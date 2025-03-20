@@ -24,7 +24,6 @@ jobs:
             libx11-dev libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-shm0-dev \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
             gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
-            pkg-config-aarch64-linux-gnu pkg-config-arm-linux-gnueabihf \
             glslang-tools llvm-dev
           pip3 install mako
 
@@ -60,12 +59,14 @@ jobs:
           cpp = 'aarch64-linux-gnu-g++'
           ar = 'aarch64-linux-gnu-ar'
           strip = 'aarch64-linux-gnu-strip'
-          pkg-config = 'aarch64-linux-gnu-pkg-config'
+          pkg-config = 'pkg-config'
           [host_machine]
           system = 'linux'
           cpu_family = 'aarch64'
           cpu = 'armv8-a'
           endian = 'little'
+          [properties]
+          pkg_config_path = '/usr/lib/aarch64-linux-gnu/pkgconfig'
           EOF
           cd mesa-24.0.2
           meson setup build-aarch64 \
@@ -109,12 +110,14 @@ jobs:
           cpp = 'arm-linux-gnueabihf-g++'
           ar = 'arm-linux-gnueabihf-ar'
           strip = 'arm-linux-gnueabihf-strip'
-          pkg-config = 'arm-linux-gnueabihf-pkg-config'
+          pkg-config = 'pkg-config'
           [host_machine]
           system = 'linux'
           cpu_family = 'arm'
           cpu = 'armv7-a'
           endian = 'little'
+          [properties]
+          pkg_config_path = '/usr/lib/arm-linux-gnueabihf/pkgconfig'
           EOF
           cd mesa-24.0.2
           meson setup build-armhf \
