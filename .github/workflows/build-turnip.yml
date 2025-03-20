@@ -1,0 +1,99 @@
+name: Build Mesa for ARM
+
+# Trigger the workflow on pushes or pull requests
+on: [push, pull_request]
+
+jobs:
+  build-armhf:
+    runs-on: ubuntu-latest
+    steps:
+      # Install QEMU and debootstrap for ARM emulation
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static binfmt-support debootstrap
+
+      # Set up an ARMHF chroot environment
+      - name: Set Up ARMHF Chroot
+        run: |
+          sudo debootstrap --arch=armhf --foreign buster /chroot/armhf http://deb.debian.org/debian
+          sudo cp /usr/bin/qemu-arm-static /chroot/armhf/usr/bin/
+          sudo chroot /chroot/armhf /debootstrap/debootstrap --second-stage
+
+      # Install build dependencies inside the chroot
+      - name: Install Build Dependencies in Chroot
+        run: |
+          sudo chroot /chroot/armhf /bin/bash -c "
+            apt-get update
+            apt-get install -y git meson ninja-build libdrm-dev libvulkan-dev libexpat1-dev libx11-dev \
+                              libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-dri2-0-dev \
+                              libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
+          "
+
+      # Build Mesa with Turnip support inside the chroot
+      - name: Build Mesa in Chroot
+        run: |
+          sudo chroot /chroot/armhf /bin/bash -c "
+            git clone https://gitlab.freedesktop.org/Danil/mesa.git
+            cd mesa
+            git checkout turnip/feature/a7xx-basic-support
+            meson builddir -Dvulkan-drivers=turnip -Ddri-drivers= -Dgallium-drivers= -Dbuildtype=release
+            ninja -C builddir
+            # Package into a .deb file using checkinstall
+            checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
+                         --default ninja -C builddir install
+          "
+
+      # Upload the resulting .deb file as an artifact
+      - name: Upload ARMHF Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: mesa-armhf
+          path: /chroot/armhf/mesa/*.deb
+
+  build-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      # Install QEMU and debootstrap for ARM emulation
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static binfmt-support debootstrap
+
+      # Set up an ARM64 chroot environment
+      - name: Set Up ARM64 Chroot
+        run: |
+          sudo debootstrap --arch=arm64 --foreign buster /chroot/arm64 http://deb.debian.org/debian
+          sudo cp /usr/bin/qemu-aarch64-static /chroot/arm64/usr/bin/
+          sudo chroot /chroot/arm64 /debootstrap/debootstrap --second-stage
+
+      # Install build dependencies inside the chroot
+      - name: Install Build Dependencies in Chroot
+        run: |
+          sudo chroot /chroot/arm64 /bin/bash -c "
+            apt-get update
+            apt-get install -y git meson ninja-build libdrm-dev libvulkan-dev libexpat1-dev libx11-dev \
+                              libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-dri2-0-dev \
+                              libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
+          "
+
+      # Build Mesa with Turnip support inside the chroot
+      - name: Build Mesa in Chroot
+        run: |
+          sudo chroot /chroot/arm64 /bin/bash -c "
+            git clone https://gitlab.freedesktop.org/Danil/mesa.git
+            cd mesa
+            git checkout turnip/feature/a7xx-basic-support
+            meson builddir -Dvulkan-drivers=turnip -Ddri-drivers= -Dgallium-drivers= -Dbuildtype=release
+            ninja -C builddir
+            # Package into a .deb file using checkinstall
+            checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
+                         --default ninja -C builddir install
+          "
+
+      # Upload the resulting .deb file as an artifact
+      - name: Upload ARM64 Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: mesa-arm64
+          path: /chroot/arm64/mesa/*.deb
