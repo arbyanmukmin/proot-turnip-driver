@@ -27,7 +27,11 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
-          sudo apt build-dep mesa -y
+          sudo apt build-dep -y mesa
+          sudo apt install -y gcc-aarch64-linux-gnu \
+                              g++-aarch64-linux-gnu \
+                              gcc-arm-linux-gnueabihf \
+                              g++-arm-linux-gnueabihf
 
       - name: Build Mesa with Turnip
         env:
