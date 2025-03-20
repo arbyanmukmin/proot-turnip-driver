@@ -73,27 +73,26 @@ build_mesa() {
     }
 
     meson setup "$BUILD_DIR" \
-        --cross-file "$CROSS_FILE" \
-        --prefix=/usr \
-        -Dgbm=enabled \
-        -Dopengl=true \
-        -Degl=enabled \
-        -Degl-native-platform=x11 \
-        -Dgles1=disabled \
-        -Dgles2=enabled \
-        -Ddri3=enabled \
-        -Dglx=dri \
-        -Dllvm=enabled \
-        -Dshared-llvm=disabled \
-        -Dplatforms=x11,wayland \
-        -Dgallium-drivers=swrast,virgl,zink \
-        -Dosmesa=true \
-        -Dglvnd=true \
-        -Dxmlconfig=disabled \
-        -Dbuildtype=release || {
-            echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
-            exit 1
-        }
+    --cross-file "$CROSS_FILE" \
+    --prefix=/usr \
+    -Dgbm=enabled \
+    -Dopengl=true \
+    -Degl=enabled \
+    -Dgles1=disabled \
+    -Dgles2=enabled \
+    -Dllvm=enabled \
+    -Dshared-llvm=disabled \
+    -Dplatforms=surfaceless \
+    -Dgallium-drivers=swrast,virgl,zink \
+    -Dosmesa=true \
+    -Dglvnd=true \
+    -Dxmlconfig=disabled \
+    -Dvulkan-drivers=freedreno \
+    -Dfreedreno-kmds=kgsl \
+    -Dbuildtype=release || {
+        echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
+        exit 1
+    }
 
     echo -e "${GREEN}Building Mesa for $ARCH...${NC}"
     ninja -C "$BUILD_DIR" || {
