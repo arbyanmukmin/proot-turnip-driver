@@ -63,7 +63,7 @@ build_mesa() {
     if [ ! -f "$CROSS_FILE" ]; then
         echo -e "${RED}Error: Cross-compilation file $CROSS_FILE not found${NC}" >&2
         exit 1
-    }
+    fi
 
     echo -e "${GREEN}Configuring Mesa for $ARCH...${NC}"
     cd "$MESA_SRC_DIR" || {
