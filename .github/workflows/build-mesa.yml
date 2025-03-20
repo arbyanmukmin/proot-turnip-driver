@@ -1,4 +1,4 @@
-name: Build Mesa with Vulkan Turnip and Patches for ARM64 and ARMHF
+name: Build Turnip Mesa for ARM64 and ARMHF
 
 on:
   push:
@@ -7,172 +7,45 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  build:
+  build-turnip:
     runs-on: ubuntu-latest
+
     steps:
+      # Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Install dependencies for cross-compilation
       - name: Install Dependencies
         run: |
-          sudo apt update -y
-          sudo apt install -y build-essential git meson ninja-build cmake python3 python3-pip \
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential git meson ninja-build cmake python3 python3-pip \
             wget pkg-config libdrm-dev libexpat1-dev zlib1g-dev \
-            libx11-dev libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-shm0-dev \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-            gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
-            glslang-tools llvm-15-dev llvm-15-tools
-          # Symlink llvm-config
-          sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config
+            gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
           pip3 install mako
 
-      - name: Verify LLVM Installation
-        run: |
-          echo "Checking LLVM installation..."
-          which llvm-config || echo "llvm-config not found"
-          llvm-config --version || echo "llvm-config failed to run"
-          ls -l /usr/bin/llvm-config* || echo "No llvm-config binaries found"
+      # Ensure the build script is executable
+      - name: Make Build Script Executable
+        run: chmod +x build_turnip.sh
 
-      - name: Set Up Build Environment
-        run: |
-          mkdir -p mesa-build
-          cd mesa-build
-          wget https://archive.mesa3d.org/mesa-24.0.2.tar.xz
-          tar -xJf mesa-24.0.2.tar.xz
-          cd mesa-24.0.2
+      # Run the build script
+      - name: Build Mesa with Turnip
+        run: ./build_turnip.sh
 
-      - name: Apply Patches from /patch Folder
-        run: |
-          cd mesa-build/mesa-24.0.2
-          if [ -d "../../patch" ]; then
-            echo "Applying patches from /patch folder..."
-            for patch in ../../patch/*.patch; do
-              if [ -f "$patch" ]; then
-                echo "Applying $patch"
-                patch -p1 < "$patch" || { echo "Failed to apply $patch"; exit 1; }
-              fi
-            done
-          else
-            echo "No /patch folder found, skipping patch application."
-          fi
-
-      - name: Configure Cross-Compilation for ARM64
-        env:
-          LLVM_CONFIG: /usr/bin/llvm-config-15
-        run: |
-          cd mesa-build
-          cat > cross-aarch64.ini << EOF
-          [binaries]
-          c = 'aarch64-linux-gnu-gcc'
-          cpp = 'aarch64-linux-gnu-g++'
-          ar = 'aarch64-linux-gnu-ar'
-          strip = 'aarch64-linux-gnu-strip'
-          pkg-config = 'pkg-config'
-          [host_machine]
-          system = 'linux'
-          cpu_family = 'aarch64'
-          cpu = 'armv8-a'
-          endian = 'little'
-          [properties]
-          pkg_config_path = '/usr/lib/aarch64-linux-gnu/pkgconfig'
-          EOF
-          cd mesa-24.0.2
-          meson setup build-aarch64 \
-            --cross-file ../cross-aarch64.ini \
-            -Dvulkan-drivers=freedreno \
-            -Dgbm=enabled \
-            -Dopengl=true \
-            -Degl=enabled \
-            -Degl-native-platform=x11 \
-            -Dgles1=disabled \
-            -Dgles2=enabled \
-            -Ddri3=enabled \
-            -Dglx=dri \
-            -Dllvm=enabled \
-            -Dshared-llvm=disabled \
-            -Dplatforms=x11,wayland \
-            -Dgallium-drivers=swrast,virgl,zink \
-            -Dosmesa=true \
-            -Dglvnd=true \
-            -Dxmlconfig=disabled \
-            -Dbuildtype=release \
-            -Dprefix=/usr/local
-
-      - name: Build Mesa for ARM64
-        run: |
-          cd mesa-build/mesa-24.0.2
-          ninja -C build-aarch64
-
-      - name: Install Mesa for ARM64
-        run: |
-          cd mesa-build/mesa-24.0.2
-          ninja -C build-aarch64 install
-          tar -C /usr/local -czf ../mesa-24.0.2-aarch64.tar.gz .
-
-      - name: Configure Cross-Compilation for ARMHF
-        env:
-          LLVM_CONFIG: /usr/bin/llvm-config-15
-        run: |
-          cd mesa-build
-          cat > cross-armhf.ini << EOF
-          [binaries]
-          c = 'arm-linux-gnueabihf-gcc'
-          cpp = 'arm-linux-gnueabihf-g++'
-          ar = 'arm-linux-gnueabihf-ar'
-          strip = 'arm-linux-gnueabihf-strip'
-          pkg-config = 'pkg-config'
-          [host_machine]
-          system = 'linux'
-          cpu_family = 'arm'
-          cpu = 'armv7-a'
-          endian = 'little'
-          [properties]
-          pkg_config_path = '/usr/lib/arm-linux-gnueabihf/pkgconfig'
-          EOF
-          cd mesa-24.0.2
-          meson setup build-armhf \
-            --cross-file ../cross-armhf.ini \
-            -Dvulkan-drivers=freedreno \
-            -Dgbm=enabled \
-            -Dopengl=true \
-            -Degl=enabled \
-            -Degl-native-platform=x11 \
-            -Dgles1=disabled \
-            -Dgles2=enabled \
-            -Ddri3=enabled \
-            -Dglx=dri \
-            -Dllvm=enabled \
-            -Dshared-llvm=disabled \
-            -Dplatforms=x11,wayland \
-            -Dgallium-drivers=swrast,virgl,zink \
-            -Dosmesa=true \
-            -Dglvnd=true \
-            -Dxmlconfig=disabled \
-            -Dbuildtype=release \
-            -Dprefix=/usr/local
-
-      - name: Build Mesa for ARMHF
-        run: |
-          cd mesa-build/mesa-24.0.2
-          ninja -C build-armhf
-
-      - name: Install Mesa for ARMHF
-        run: |
-          cd mesa-build/mesa-24.0.2
-          ninja -C build-armhf install
-          tar -C /usr/local -czf ../mesa-24.0.2-armhf.tar.gz .
-
+      # Upload ARM64 artifact
       - name: Upload ARM64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-24.0.2-aarch64
-          path: mesa-build/mesa-24.0.2-aarch64.tar.gz
+          name: mesa-turnip-arm64
+          path: ~/mesa-cross-build/mesa-24.0.2-aarch64.tar.gz
 
+      # Upload ARMHF artifact
       - name: Upload ARMHF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-24.0.2-armhf
-          path: mesa-build/mesa-24.0.2-armhf.tar.gz
+          name: mesa-turnip-armhf
+          path: ~/mesa-cross-build/mesa-24.0.2-armhf.tar.gz
