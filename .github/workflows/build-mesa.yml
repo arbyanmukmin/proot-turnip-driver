@@ -25,9 +25,16 @@ jobs:
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
             gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
             glslang-tools llvm-15-dev llvm-15-tools
-          # Ensure llvm-config is linked
+          # Symlink llvm-config
           sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config
           pip3 install mako
+
+      - name: Verify LLVM Installation
+        run: |
+          echo "Checking LLVM installation..."
+          which llvm-config || echo "llvm-config not found"
+          llvm-config --version || echo "llvm-config failed to run"
+          ls -l /usr/bin/llvm-config* || echo "No llvm-config binaries found"
 
       - name: Set Up Build Environment
         run: |
@@ -53,6 +60,8 @@ jobs:
           fi
 
       - name: Configure Cross-Compilation for ARM64
+        env:
+          LLVM_CONFIG: /usr/bin/llvm-config-15
         run: |
           cd mesa-build
           cat > cross-aarch64.ini << EOF
@@ -101,3 +110,69 @@ jobs:
         run: |
           cd mesa-build/mesa-24.0.2
           ninja -C build-aarch64 install
+          tar -C /usr/local -czf ../mesa-24.0.2-aarch64.tar.gz .
+
+      - name: Configure Cross-Compilation for ARMHF
+        env:
+          LLVM_CONFIG: /usr/bin/llvm-config-15
+        run: |
+          cd mesa-build
+          cat > cross-armhf.ini << EOF
+          [binaries]
+          c = 'arm-linux-gnueabihf-gcc'
+          cpp = 'arm-linux-gnueabihf-g++'
+          ar = 'arm-linux-gnueabihf-ar'
+          strip = 'arm-linux-gnueabihf-strip'
+          pkg-config = 'pkg-config'
+          [host_machine]
+          system = 'linux'
+          cpu_family = 'arm'
+          cpu = 'armv7-a'
+          endian = 'little'
+          [properties]
+          pkg_config_path = '/usr/lib/arm-linux-gnueabihf/pkgconfig'
+          EOF
+          cd mesa-24.0.2
+          meson setup build-armhf \
+            --cross-file ../cross-armhf.ini \
+            -Dvulkan-drivers=freedreno \
+            -Dgbm=enabled \
+            -Dopengl=true \
+            -Degl=enabled \
+            -Degl-native-platform=x11 \
+            -Dgles1=disabled \
+            -Dgles2=enabled \
+            -Ddri3=enabled \
+            -Dglx=dri \
+            -Dllvm=enabled \
+            -Dshared-llvm=disabled \
+            -Dplatforms=x11,wayland \
+            -Dgallium-drivers=swrast,virgl,zink \
+            -Dosmesa=true \
+            -Dglvnd=true \
+            -Dxmlconfig=disabled \
+            -Dbuildtype=release \
+            -Dprefix=/usr/local
+
+      - name: Build Mesa for ARMHF
+        run: |
+          cd mesa-build/mesa-24.0.2
+          ninja -C build-armhf
+
+      - name: Install Mesa for ARMHF
+        run: |
+          cd mesa-build/mesa-24.0.2
+          ninja -C build-armhf install
+          tar -C /usr/local -czf ../mesa-24.0.2-armhf.tar.gz .
+
+      - name: Upload ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-24.0.2-aarch64
+          path: mesa-build/mesa-24.0.2-aarch64.tar.gz
+
+      - name: Upload ARMHF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-24.0.2-armhf
+          path: mesa-build/mesa-24.0.2-armhf.tar.gz
