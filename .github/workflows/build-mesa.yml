@@ -1,49 +1,50 @@
 name: Build Turnip Mesa for ARM64 and ARMHF
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:  # Allows manual triggering
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+    workflow_dispatch:
+        inputs:
+            mesa-version:
+                description: 'Mesa version to build (e.g., 24.0.2)'
+                required: false
+                default: '24.0.2'
 
 jobs:
-  build-turnip:
-    runs-on: ubuntu-latest
+    build-turnip:
+        runs-on: ubuntu-latest
 
-    steps:
-      # Checkout the repository
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Repository
+                uses: actions/checkout@v4
 
-      # Install dependencies for cross-compilation
-      - name: Install Dependencies
-        run: |
-          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
-          sudo apt update
-          sudo apt build-dep mesa -y
+            - name: Install Dependencies
+                run: |
+                    sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+                    sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+                    sudo apt update
+                    sudo apt build-dep mesa -y
 
-      # Ensure the build script is executable
-      - name: Make Build Script Executable
-        run: chmod +x build_turnip.sh
+            - name: Build Mesa with Turnip
+                env:
+                    MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.0.2' }}
+                run: |
+                    chmod +x build_turnip.sh
+                    echo "Building Mesa version: $MESA_VERSION"
+                    bash build_turnip.sh "$MESA_VERSION"
 
-      # Run the build script
-      - name: Build Mesa with Turnip
-        run: ./build_turnip.sh
+            - name: Upload ARM64 Artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: mesa-turnip-${{ github.event.inputs.mesa-version || '24.0.2' }}-arm64
+                    path: ~/mesa-cross-build/mesa-${{ github.event.inputs.mesa-version || '24.0.2' }}-aarch64.tar.gz
 
-      # Upload ARM64 artifact
-      - name: Upload ARM64 Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mesa-turnip-arm64
-          path: ~/mesa-cross-build/mesa-24.0.2-aarch64.tar.gz
-
-      # Upload ARMHF artifact
-      - name: Upload ARMHF Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mesa-turnip-armhf
-          path: ~/mesa-cross-build/mesa-24.0.2-armhf.tar.gz
+            - name: Upload ARMHF Artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: mesa-turnip-${{ github.event.inputs.mesa-version || '24.0.2' }}-armhf
+                    path: ~/mesa-cross-build/mesa-${{ github.event.inputs.mesa-version || '24.0.2' }}-armhf.tar.gz
