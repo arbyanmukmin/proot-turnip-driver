@@ -75,6 +75,7 @@ build_mesa() {
     meson setup "$BUILD_DIR" \
     --cross-file "$CROSS_FILE" \
     --prefix=/usr \
+    -Dllvm-config=/usr/bin/llvm-config \
     -Dgbm=true \
     -Dopengl=true \
     -Degl=true \
