@@ -94,7 +94,7 @@ build_mesa() {
     -Db_lto=true \
     -Db_ndebug=true \
     -Dcpp_rtti=false \
-    -Dgallium-xa=disabled
+    -Dgallium-xa=disabled \
     -Dbuildtype=release || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
