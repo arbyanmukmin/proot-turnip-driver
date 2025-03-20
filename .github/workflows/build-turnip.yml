@@ -1,52 +1,48 @@
-name: Build DEB Packages
+name: Build ARMHF and ARM64 Debian Packages
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
-  build-deb:
+  build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        # Use "arm/v7" for armhf and "arm64" for arm64
-        arch: [ "arm/v7", "arm64" ]
+        arch: [armhf, arm64]
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-      # Option 1: Using a Dockerfile that builds your deb package.
-      # Adjust the Dockerfile to copy the .deb to a known location (here assumed to be /output/)
-      - name: Build DEB package for ${{ matrix.arch }}
-        run: |
-          docker buildx build \
-            --platform linux/${{ matrix.arch }} \
-            --build-arg TARGET_ARCH=${{ matrix.arch }} \
-            -t proot-setup:${{ matrix.arch }} \
-            --load .
-          # Create a container from the image to extract the generated .deb file.
-          CONTAINER_ID=$(docker create proot-setup:${{ matrix.arch }})
-          docker cp $CONTAINER_ID:/output/package.deb deb-${{ matrix.arch }}.deb
-          docker rm $CONTAINER_ID
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential devscripts debhelper dh-make quilt
 
-      # Option 2: If you prefer to use a local build script, you could do something like:
-      # - name: Build DEB package using script for ${{ matrix.arch }}
-      #   run: |
-      #     chmod +x ./build_deb.sh
-      #     ./build_deb.sh ${{ matrix.arch }}
-      #     mv path/to/output/package.deb deb-${{ matrix.arch }}.deb
+    - name: Build Debian package for ${{ matrix.arch }}
+      run: |
+        if [ "${{ matrix.arch }}" == "armhf" ]; then
+          docker run --rm -v $(pwd):/src -w /src multiarch/qemu-user-static --reset -p yes
+          dpkg-buildpackage -us -uc -aarmhf
+        elif [ "${{ matrix.arch }}" == "arm64" ]; then
+          docker run --rm -v $(pwd):/src -w /src multiarch/qemu-user-static --reset -p yes
+          dpkg-buildpackage -us -uc -aarm64
+        fi
 
-      - name: Upload DEB artifact for ${{ matrix.arch }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: deb-${{ matrix.arch }}
-          path: deb-${{ matrix.arch }}.deb
+    - name: Upload Debian package
+      uses: actions/upload-artifact@v3
+      with:
+        name: deb-package-${{ matrix.arch }}
+        path: ../proot-setup_*.deb
