@@ -24,48 +24,15 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # Enable arm64 and armhf architectures
-          sudo dpkg --add-architecture arm64
-          sudo dpkg --add-architecture armhf
-
-          # Replace sources.list with explicit multiarch entries
-          sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
-          cat << EOF | sudo tee /etc/apt/sources.list
-          deb [arch=amd64,arm64,armhf] http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse
-          deb [arch=amd64,arm64,armhf] http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse
-          deb [arch=amd64,arm64,armhf] http://security.ubuntu.com/ubuntu jammy-security main restricted universe multiverse
-          EOF
-
-          # Debug: Show sources.list
-          echo "Updated /etc/apt/sources.list:"
-          cat /etc/apt/sources.list
-
-          # Update package lists
-          sudo apt update -y || { echo "apt update failed"; exit 1; }
-
-          # Install dependencies
-          sudo apt build-dep mesa -y
-          sudo apt install -y \
-            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
-            zlib1g-dev:arm64 zlib1g-dev:armhf \
-            libdrm-dev:arm64 libdrm-dev:armhf \
-            libx11-dev:arm64 libx11-dev:armhf \
-            libx11-xcb-dev:arm64 libx11-xcb-dev:armhf \
-            libxext-dev:arm64 libxext-dev:armhf \
-            libxdamage-dev:arm64 libxdamage-dev:armhf \
-            libxcb-glx0-dev:arm64 libxcb-glx0-dev:armhf \
-            libxcb-dri2-0-dev:arm64 libxcb-dri2-0-dev:armhf \
-            libxcb-dri3-dev:arm64 libxcb-dri3-dev:armhf \
-            libxcb-shm0-dev:arm64 libxcb-shm0-dev:armhf \
-            libxcb-present-dev:arm64 libxcb-present-dev:armhf \
-            libxshmfence-dev:arm64 libxshmfence-dev:armhf \
-            libxxf86vm-dev:arm64 libxxf86vm-dev:armhf \
-            libxrandr-dev:arm64 libxrandr-dev:armhf \
-            libwayland-dev:arm64 libwayland-dev:armhf \
-            wayland-protocols \
-            libvulkan-dev:arm64 libvulkan-dev:armhf \
-            libglvnd-dev:arm64 libglvnd-dev:armhf \
-            libegl1-mesa-dev:arm64 libegl1-mesa-dev:armhf
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+          sudo apt update
+          sudo apt build-dep mesa
+          sudo apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+                              zlib1g-dev libdrm-dev libx11-dev libx11-xcb-dev libxext-dev libxdamage-dev \
+                              libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-shm0-dev libxcb-present-dev libxshmfence-dev \
+                              libxxf86vm-dev libxrandr-dev libwayland-dev wayland-protocols \
+                              libvulkan-dev libglvnd-dev libegl1-mesa-dev
           sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
