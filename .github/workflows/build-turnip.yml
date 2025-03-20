@@ -1,123 +1,52 @@
-name: Build Mesa for ARM
+name: Build DEB Packages
 
-# Trigger the workflow on pushes or pull requests
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build-armhf:
+  build-deb:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Use "arm/v7" for armhf and "arm64" for arm64
+        arch: [ "arm/v7", "arm64" ]
     steps:
-      # Install QEMU and debootstrap for ARM emulation
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-user-static binfmt-support debootstrap
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # Set up an ARMHF chroot environment
-      - name: Set Up ARMHF Chroot
-        run: |
-          sudo debootstrap --arch=armhf --foreign buster /chroot/armhf http://deb.debian.org/debian
-          sudo cp /usr/bin/qemu-arm-static /chroot/armhf/usr/bin/
-          sudo chroot /chroot/armhf /debootstrap/debootstrap --second-stage
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      # Install build dependencies inside the chroot
-      - name: Install Build Dependencies in Chroot
-        run: |
-          sudo chroot /chroot/armhf /bin/bash -c "
-            apt-get update
-            apt-get install -y git meson ninja-build libdrm-dev libvulkan-dev libexpat1-dev libx11-dev \
-                              libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-dri2-0-dev \
-                              libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
-          "
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      # Build Mesa with Turnip support inside the chroot
-      - name: Build Mesa in Chroot
+      # Option 1: Using a Dockerfile that builds your deb package.
+      # Adjust the Dockerfile to copy the .deb to a known location (here assumed to be /output/)
+      - name: Build DEB package for ${{ matrix.arch }}
         run: |
-          sudo chroot /chroot/armhf /bin/bash -c "
-            git clone https://gitlab.freedesktop.org/Danil/mesa.git
-            cd mesa
-            git checkout turnip/feature/a7xx-basic-support
-            meson builddir -Dvulkan-drivers=turnip -Ddri-drivers= -Dgallium-drivers= -Dbuildtype=release
-            ninja -C builddir
-            checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
-                         --default ninja -C builddir install
-          "
+          docker buildx build \
+            --platform linux/${{ matrix.arch }} \
+            --build-arg TARGET_ARCH=${{ matrix.arch }} \
+            -t proot-setup:${{ matrix.arch }} \
+            --load .
+          # Create a container from the image to extract the generated .deb file.
+          CONTAINER_ID=$(docker create proot-setup:${{ matrix.arch }})
+          docker cp $CONTAINER_ID:/output/package.deb deb-${{ matrix.arch }}.deb
+          docker rm $CONTAINER_ID
 
-      # Copy the .deb file to the GitHub Actions workspace
-      - name: Copy ARMHF .deb to Workspace
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/artifacts/armhf
-          sudo cp /chroot/armhf/mesa/*.deb $GITHUB_WORKSPACE/artifacts/armhf/
-          sudo chmod 644 $GITHUB_WORKSPACE/artifacts/armhf/*.deb
+      # Option 2: If you prefer to use a local build script, you could do something like:
+      # - name: Build DEB package using script for ${{ matrix.arch }}
+      #   run: |
+      #     chmod +x ./build_deb.sh
+      #     ./build_deb.sh ${{ matrix.arch }}
+      #     mv path/to/output/package.deb deb-${{ matrix.arch }}.deb
 
-      # Verify the files exist before uploading
-      - name: Verify ARMHF .deb Files
-        run: |
-          ls -l $GITHUB_WORKSPACE/artifacts/armhf/*.deb || echo "No .deb files found!"
-
-      # Upload the .deb file as an artifact
-      - name: Upload ARMHF Artifact
+      - name: Upload DEB artifact for ${{ matrix.arch }}
         uses: actions/upload-artifact@v3
         with:
-          name: mesa-armhf
-          path: ${{ github.workspace }}/artifacts/armhf/*.deb
-          if-no-files-found: error
-
-  build-arm64:
-    runs-on: ubuntu-latest
-    steps:
-      # Install QEMU and debootstrap for ARM emulation
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-user-static binfmt-support debootstrap
-
-      # Set up an ARM64 chroot environment
-      - name: Set Up ARM64 Chroot
-        run: |
-          sudo debootstrap --arch=arm64 --foreign buster /chroot/arm64 http://deb.debian.org/debian
-          sudo cp /usr/bin/qemu-aarch64-static /chroot/arm64/usr/bin/
-          sudo chroot /chroot/arm64 /debootstrap/debootstrap --second-stage
-
-      # Install build dependencies inside the chroot
-      - name: Install Build Dependencies in Chroot
-        run: |
-          sudo chroot /chroot/arm64 /bin/bash -c "
-            apt-get update
-            apt-get install -y git meson ninja-build libdrm-dev libvulkan-dev libexpat1-dev libx11-dev \
-                              libxext-dev libxrandr-dev libxfixes-dev libxcb-glx0-dev libxcb-dri2-0-dev \
-                              libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
-          "
-
-      # Build Mesa with Turnip support inside the chroot
-      - name: Build Mesa in Chroot
-        run: |
-          sudo chroot /chroot/arm64 /bin/bash -c "
-            git clone https://gitlab.freedesktop.org/Danil/mesa.git
-            cd mesa
-            git checkout turnip/feature/a7xx-basic-support
-            meson builddir -Dvulkan-drivers=turnip -Ddri-drivers= -Dgallium-drivers= -Dbuildtype=release
-            ninja -C builddir
-            checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
-                         --default ninja -C builddir install
-          "
-
-      # Copy the .deb file to the GitHub Actions workspace
-      - name: Copy ARM64 .deb to Workspace
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/artifacts/arm64
-          sudo cp /chroot/arm64/mesa/*.deb $GITHUB_WORKSPACE/artifacts/arm64/
-          sudo chmod 644 $GITHUB_WORKSPACE/artifacts/arm64/*.deb
-
-      # Verify the files exist before uploading
-      - name: Verify ARM64 .deb Files
-        run: |
-          ls -l $GITHUB_WORKSPACE/artifacts/arm64/*.deb || echo "No .deb files found!"
-
-      # Upload the .deb file as an artifact
-      - name: Upload ARM64 Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: mesa-arm64
-          path: ${{ github.workspace }}/artifacts/arm64/*.deb
-          if-no-files-found: error
+          name: deb-${{ matrix.arch }}
+          path: deb-${{ matrix.arch }}.deb
