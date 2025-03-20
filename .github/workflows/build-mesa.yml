@@ -24,12 +24,27 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+          # Enable arm64 and armhf architectures
           sudo dpkg --add-architecture arm64
           sudo dpkg --add-architecture armhf
-          sudo apt update
-          sudo apt build-dep mesa
+
+          # Replace sources.list with explicit multiarch entries
+          sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+          cat << EOF | sudo tee /etc/apt/sources.list
+          deb [arch=amd64,arm64,armhf] http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse
+          deb [arch=amd64,arm64,armhf] http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse
+          deb [arch=amd64,arm64,armhf] http://security.ubuntu.com/ubuntu jammy-security main restricted universe multiverse
+          EOF
+
+          # Debug: Show sources.list
+          echo "Updated /etc/apt/sources.list:"
+          cat /etc/apt/sources.list
+
+          # Update package lists
+          sudo apt update -y || { echo "apt update failed"; exit 1; }
+
+          # Install dependencies
+          sudo apt build-dep mesa -y
           sudo apt install -y \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
             zlib1g-dev:arm64 zlib1g-dev:armhf \
