@@ -1,68 +1,49 @@
-name: Build Mesa Vulkan-KGSL (ARM)
+name: Build Turnip Mesa for ARM64 and ARMHF
 
-on: [workflow_dispatch, push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        arch: [arm64, armhf]
+  build-turnip:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update && sudo apt-get install -y \
-        build-essential meson ninja-build pkg-config \
-        crossbuild-essential-arm64 crossbuild-essential-armhf \
-        libdrm-dev:arm64 libdrm-dev:armhf
+      # Install dependencies for cross-compilation
+      - name: Install Dependencies
+        run: |
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+          sudo apt update
+          sudo apt build-dep mesa -y
 
-    - name: Clone Mesa
-      run: |
-        git clone https://gitlab.freedesktop.org/mesa/mesa -b 24.0.3
-        cd mesa
-        # Apply patches here
+      # Ensure the build script is executable
+      - name: Make Build Script Executable
+        run: chmod +x build_turnip.sh
 
-    - name: Setup cross-compile
-      working-directory: ./mesa
-      run: |
-        echo "[binaries]
-        c = '${CC}'
-        cpp = '${CXX}'
-        ar = '${AR}'
-        strip = 'strip'
-        [host_machine]
-        system = 'linux'
-        cpu_family = '${CPU_FAMILY}'
-        cpu = '${CPU}'
-        endian = 'little'" > crossfile.ini
+      # Run the build script
+      - name: Build Mesa with Turnip
+        run: ./build_turnip.sh
 
-    - name: Configure & Build
-      working-directory: ./mesa
-      env:
-        CC: ${{ matrix.arch == 'arm64' && 'aarch64-linux-gnu-gcc' || 'arm-linux-gnueabihf-gcc' }}
-        CXX: ${{ matrix.arch == 'arm64' && 'aarch64-linux-gnu-g++' || 'arm-linux-gnueabihf-g++' }}
-        AR: ${{ matrix.arch == 'arm64' && 'aarch64-linux-gnu-ar' || 'arm-linux-gnueabihf-ar' }}
-        CPU_FAMILY: ${{ matrix.arch == 'arm64' && 'aarch64' || 'arm' }}
-        CPU: ${{ matrix.arch }}
-      run: |
-        meson build-${{ matrix.arch }} \
-          --cross-file crossfile.ini \
-          -Dvulkan-drivers=kgsl \
-          -Dplatforms= -Dglx=disabled
-        ninja -C build-${{ matrix.arch }}
+      # Upload ARM64 artifact
+      - name: Upload ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-turnip-arm64
+          path: ~/mesa-cross-build/mesa-24.0.2-aarch64.tar.gz
 
-    - name: Package
-      run: |
-        mkdir -p artifacts
-        cp mesa/build-${{ matrix.arch }}/src/vulkan/driver/*kgsl* artifacts/
-        tar czvf mesa-vulkan-kgsl-${{ matrix.arch }}.tar.gz artifacts/
-
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: mesa-kgsl-${{ matrix.arch }}
-        path: mesa-vulkan-kgsl-${{ matrix.arch }}.tar.gz
+      # Upload ARMHF artifact
+      - name: Upload ARMHF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-turnip-armhf
+          path: ~/mesa-cross-build/mesa-24.0.2-armhf.tar.gz
