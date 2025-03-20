@@ -30,7 +30,6 @@ jobs:
                               libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
           "
 
-      # Build Mesa with Turnip support inside the chroot
       - name: Build Mesa in Chroot
         run: |
           sudo chroot /chroot/armhf /bin/bash -c "
@@ -39,14 +38,15 @@ jobs:
             git checkout turnip/feature/a7xx-basic-support
             meson builddir -Dvulkan-drivers=turnip -Ddri-drivers= -Dgallium-drivers= -Dbuildtype=release
             ninja -C builddir
-            # Package into a .deb file using checkinstall
             checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
                          --default ninja -C builddir install
           "
-
-      # Upload the resulting .deb file as an artifact
+      
+      - name: Set Permissions for ARMHF .deb
+        run: sudo chmod 644 /chroot/armhf/mesa/*.deb
+      
       - name: Upload ARMHF Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: mesa-armhf
           path: /chroot/armhf/mesa/*.deb
@@ -77,7 +77,6 @@ jobs:
                               libxcb-dri3-dev libxcb-present-dev libxshmfence-dev python3-mako checkinstall
           "
 
-      # Build Mesa with Turnip support inside the chroot
       - name: Build Mesa in Chroot
         run: |
           sudo chroot /chroot/arm64 /bin/bash -c "
@@ -86,14 +85,15 @@ jobs:
             git checkout turnip/feature/a7xx-basic-support
             meson builddir -Dvulkan-drivers=turnip -Ddri-drivers= -Dgallium-drivers= -Dbuildtype=release
             ninja -C builddir
-            # Package into a .deb file using checkinstall
             checkinstall -D --install=no --pkgname=mesa-vulkan-kgsl --pkgversion=23.3.0-devel-20230803 \
                          --default ninja -C builddir install
           "
-
-      # Upload the resulting .deb file as an artifact
+      
+      - name: Set Permissions for ARM64 .deb
+        run: sudo chmod 644 /chroot/arm64/mesa/*.deb
+      
       - name: Upload ARM64 Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: mesa-arm64
           path: /chroot/arm64/mesa/*.deb
