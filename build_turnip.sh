@@ -75,20 +75,20 @@ build_mesa() {
     meson setup "$BUILD_DIR" \
     --cross-file "$CROSS_FILE" \
     --prefix=/usr \
-    -Dgbm=enabled \
+    -Dgbm=true \
     -Dopengl=true \
-    -Degl=enabled \
-    -Dgles1=disabled \
-    -Dgles2=enabled \
+    -Degl=true \
+    -Dgles1=false \
+    -Dgles2=true \
     -Dglx=dri \
-    -Ddri3=enabled \
-    -Dllvm=enabled \
-    -Dshared-llvm=disabled \
+    -Ddri3=true \
+    -Dllvm=true \
+    -Dshared-llvm=false \
     -Dplatforms=x11,wayland \
     -Dgallium-drivers=swrast,virgl,zink,freedreno \
     -Dosmesa=true \
     -Dglvnd=true \
-    -Dxmlconfig=disabled \
+    -Dxmlconfig=false \
     -Dvulkan-drivers=freedreno \
     -Dfreedreno-kmds=kgsl \
     -Dbuildtype=release || {
