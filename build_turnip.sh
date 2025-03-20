@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to cross-compile Mesa for ARM64 and ARMHF with Vulkan KGSL driver
-# Target: ARM64 and ARMHF (armv7hf) for Android
+# Target: ARM64 and ARMHF (armv7hf) for Termux's Proot System
 
 # Exit on any error
 set -e
@@ -84,7 +84,7 @@ build_mesa() {
     -Ddri3=enabled \
     -Dllvm=enabled \
     -Dshared-llvm=disabled \
-    -Dplatforms=android,x11 \
+    -Dplatforms=x11,wayland \
     -Dgallium-drivers=swrast,virgl,zink,freedreno \
     -Dosmesa=true \
     -Dglvnd=true \
