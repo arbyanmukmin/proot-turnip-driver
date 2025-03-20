@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-turnip:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Repository
@@ -28,11 +28,6 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
           sudo apt build-dep mesa
-          sudo apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
-                              zlib1g-dev libdrm-dev libx11-dev libx11-xcb-dev libxext-dev libxdamage-dev \
-                              libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-shm0-dev libxcb-present-dev libxshmfence-dev \
-                              libxxf86vm-dev libxrandr-dev libwayland-dev wayland-protocols \
-                              libvulkan-dev libglvnd-dev libegl1-mesa-dev
 
       - name: Build Mesa with Turnip
         env:
