@@ -1,12 +1,12 @@
 name: Build Turnip Mesa for ARM64 and ARMHF
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  # push:
+    # branches:
+      # - main
+  # pull_request:
+    # branches:
+      # - main
   workflow_dispatch:
     inputs:
       mesa-version:
@@ -28,7 +28,7 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
           sudo apt build-dep mesa
-          sudo apt install -y llvm-14-dev llvm-14-tools libudev-dev \
+          sudo apt install -y llvm-dev libllvm-dev libudev-dev clang \
                               gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
                               zlib1g-dev libdrm-dev libx11-dev libx11-xcb-dev libxext-dev libxdamage-dev \
                               libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-shm0-dev libxcb-present-dev libxshmfence-dev \
