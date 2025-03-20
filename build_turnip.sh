@@ -80,10 +80,12 @@ build_mesa() {
     -Degl=enabled \
     -Dgles1=disabled \
     -Dgles2=enabled \
+    -Dglx=dri \
+    -Ddri3=enabled \
     -Dllvm=enabled \
     -Dshared-llvm=disabled \
-    -Dplatforms=surfaceless \
-    -Dgallium-drivers=swrast,virgl,zink \
+    -Dplatforms=android,x11 \
+    -Dgallium-drivers=swrast,virgl,zink,freedreno \
     -Dosmesa=true \
     -Dglvnd=true \
     -Dxmlconfig=disabled \
