@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-turnip:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Repository
@@ -28,7 +28,10 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
           sudo apt build-dep mesa
-          sudo apt install -y libdrm-dev gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          sudo apt install -y meson ninja-build pkg-config libdrm-dev \
+                              gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+                              gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          pkg-config --modversion libdrm
 
       - name: Build Mesa with Turnip
         env:
