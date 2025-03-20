@@ -47,7 +47,7 @@ build_mesa() {
     echo -e "${GREEN}Configuring Mesa for $ARCH...${WHITE}"
     cd "$WORK_DIR/mesa-$MESA_VERSION"
     
-    meson -C build \
+    meson setup "$BUILD_DIR" \
         -Dgbm=enabled \
         -Dopengl=true \
         -Degl=enabled \
@@ -64,10 +64,7 @@ build_mesa() {
         -Dglvnd=true \
         -Dxmlconfig=disabled
 
-    echo -e "${GREEN}Building Mesa for $ARCH...${WHITE}"
-    ninja -C "$BUILD_DIR"
-
-    echo -e "${GREEN}Installing Mesa for $ARCH...${WHITE}"
+    echo -e "${GREEN}Building and installing Mesa for $ARCH...${WHITE}"
     ninja -C "$BUILD_DIR" install
 
     echo -e "${GREEN}Packaging $ARCH build...${WHITE}"
