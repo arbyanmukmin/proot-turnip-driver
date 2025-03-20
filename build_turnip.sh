@@ -17,10 +17,10 @@ MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
 # Set working directory and Mesa tarball details
-WORK_DIR="${HOME}/mesa-$MESA_VERSION"
+WORK_DIR="${HOME}/mesa-mesa-$MESA_VERSION"
 MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
 MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
-MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION"
+MESA_SRC_DIR="$WORK_DIR/mesa-mesa-$MESA_VERSION"
 
 # Ensure working directory exists
 mkdir -p "$WORK_DIR" || {
