@@ -26,7 +26,6 @@ jobs:
         run: |
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
-          sudo dpkg --add-architecture arm64
           sudo dpkg --add-architecture armhf
           sudo apt update
           sudo apt build-dep mesa
