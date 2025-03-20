@@ -76,7 +76,7 @@ build_mesa() {
     --cross-file "$CROSS_FILE" \
     --prefix=/usr \
     -Dplatforms=x11,wayland \
-    -Dgallium-drivers=freedreno,zink \
+    -Dgallium-drivers=freedreno \
     -Dvulkan-drivers=freedreno \
     -Dfreedreno-kmds=msm,kgsl \
     -Ddri3=enabled \
