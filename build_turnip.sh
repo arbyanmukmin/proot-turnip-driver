@@ -47,18 +47,22 @@ build_mesa() {
     echo -e "${GREEN}Configuring Mesa for $ARCH...${WHITE}"
     cd "$WORK_DIR/mesa-$MESA_VERSION"
     
-    meson setup "$BUILD_DIR" \
-        --cross-file "$WORK_DIR/cross-$ARCH.ini" \
-        -Dvulkan-drivers=freedreno \
-        -Dfreedreno-kgsl=true \
-        -Dglx=disabled \
+    meson -C build \
+        -Dgbm=enabled \
+        -Dopengl=true \
         -Degl=enabled \
-        -Dgles1=enabled \
+        -Degl-native-platform=x11 \
+        -Dgles1=disabled \
         -Dgles2=enabled \
-        -Dplatforms=wayland \
-        -Dvdpau=disabled \  # Explicitly disable VDPAU
-        -Dbuildtype=release \
-        -Dprefix="$INSTALL_DIR"
+        -Ddri3=enabled \
+        -Dglx=dri \
+        -Dllvm=enabled \
+        -Dshared-llvm=disabled \
+        -Dplatforms=x11,wayland \
+        -Dgallium-drivers=swrast,virgl,zink \
+        -Dosmesa=true \
+        -Dglvnd=true \
+        -Dxmlconfig=disabled
 
     echo -e "${GREEN}Building Mesa for $ARCH...${WHITE}"
     ninja -C "$BUILD_DIR"
