@@ -17,7 +17,7 @@ MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
 # Set working directory and Mesa tarball details
-WORK_DIR="${HOME}/mesa-main"
+WORK_DIR="${HOME}/mesa-$MESA_VERSION"
 MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
 MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
 MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION"
@@ -52,12 +52,13 @@ fi
 
 # Function to build Mesa for a specific architecture
 build_mesa() {
+    BUILD_DATE=$DATE
     local ARCH=$1
     local TRIPLE=$2
     local CROSS_FILE="$WORK_DIR/cross-$ARCH.ini"
     local BUILD_DIR="$WORK_DIR/build-$ARCH"
     local INSTALL_DIR="$WORK_DIR/install-$ARCH"
-    local OUTPUT_TARBALL="$WORK_DIR/mesa-$MESA_VERSION-$ARCH.tar.gz"
+    local OUTPUT_TARBALL="$WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-$ARCH.tar.gz"
 
     # Ensure cross-file exists
     if [ ! -f "$CROSS_FILE" ]; then
@@ -170,5 +171,5 @@ build_mesa "armhf" "arm-linux-gnueabihf"
 
 echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled for ARM64 and ARMHF successfully!${NC}"
 echo -e "${GREEN}Output files:${NC}"
-echo -e "  - $WORK_DIR/mesa-$MESA_VERSION-arm64.tar.gz (for ARM64)"
-echo -e "  - $WORK_DIR/mesa-$MESA_VERSION-armhf.tar.gz (for ARMHF)"
+echo -e "  - $WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-arm64.tar.gz (for ARM64)"
+echo -e "  - $WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-armhf.tar.gz (for ARMHF)"
