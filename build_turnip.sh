@@ -8,7 +8,7 @@
 # Exit on any error
 set -e
 
-# Colors for output (visible in GitHub Actions logs)
+# Colors for output
 GREEN='\033[0;32m'
 WHITE='\033[0;37m'
 RED='\033[0;31m'
@@ -31,7 +31,7 @@ if [ ! -f "$MESA_TARBALL" ]; then
     wget "$MESA_URL"
 fi
 
-# Extract tarball (shared for both builds)
+# Extract tarball
 if [ ! -d "mesa-$MESA_VERSION" ]; then
     echo -e "${GREEN}Extracting Mesa $MESA_VERSION...${WHITE}"
     tar -xJf "$MESA_TARBALL"
@@ -49,21 +49,14 @@ build_mesa() {
     
     meson setup "$BUILD_DIR" \
         --cross-file "$WORK_DIR/cross-$ARCH.ini" \
-        -Dgbm=enabled \
-        -Dopengl=true \
+        -Dvulkan-drivers=freedreno \
+        -Dfreedreno-kgsl=true \
+        -Dglx=disabled \
         -Degl=enabled \
-        -Degl-native-platform=x11 \
-        -Dgles1=disabled \
+        -Dgles1=enabled \
         -Dgles2=enabled \
-        -Ddri3=enabled \
-        -Dglx=dri \
-        -Dllvm=enabled \
-        -Dshared-llvm=disabled \
-        -Dplatforms=x11,wayland \
-        -Dgallium-drivers=swrast,virgl,zink \
-        -Dosmesa=true \
-        -Dglvnd=true \
-        -Dxmlconfig=disabled \
+        -Dplatforms=wayland \
+        -Dvdpau=disabled \  # Explicitly disable VDPAU
         -Dbuildtype=release \
         -Dprefix="$INSTALL_DIR"
 
@@ -78,13 +71,15 @@ build_mesa() {
 }
 
 # Create cross-compilation config files
+# Use host pkg-config with cross-prefix instead of unavailable cross-specific pkg-config
 cat > "$WORK_DIR/cross-aarch64.ini" << EOF
 [binaries]
 c = 'aarch64-linux-gnu-gcc'
 cpp = 'aarch64-linux-gnu-g++'
 ar = 'aarch64-linux-gnu-ar'
 strip = 'aarch64-linux-gnu-strip'
-pkgconfig = 'aarch64-linux-gnu-pkg-config'
+pkgconfig = 'pkg-config'
+pkg_config_path = '/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig'
 
 [host_machine]
 system = 'linux'
@@ -99,7 +94,8 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'arm-linux-gnueabihf-pkg-config'
+pkgconfig = 'pkg-config'
+pkg_config_path = '/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig'
 
 [host_machine]
 system = 'linux'
