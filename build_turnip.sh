@@ -132,11 +132,11 @@ if [ ! -f "$WORK_DIR/cross-arm64.ini" ]; then
     echo -e "${GREEN}Creating cross-compilation config for arm64...${NC}"
     cat > "$WORK_DIR/cross-arm64.ini" << EOF
 [binaries]
-c = 'aarch64-linux-gnu-gcc'
-cpp = 'aarch64-linux-gnu-g++'
-ar = 'aarch64-linux-gnu-ar'
-strip = 'aarch64-linux-gnu-strip'
-pkgconfig = 'aarch64-linux-gnu-pkg-config'
+c = 'arm-linux-gnueabihf-gcc'
+cpp = 'arm-linux-gnueabihf-g++'
+ar = 'arm-linux-gnueabihf-ar'
+strip = 'arm-linux-gnueabihf-strip'
+pkgconfig = 'arm-linux-gnueabihf-pkg-config'
 
 [host_machine]
 system = 'linux'
