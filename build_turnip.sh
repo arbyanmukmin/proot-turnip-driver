@@ -168,3 +168,6 @@ echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled for ARM64 and ARMHF successfu
 echo -e "${GREEN}Output files:${NC}"
 echo -e "  - $WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-arm64.tar.gz (for ARM64)"
 echo -e "  - $WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-armhf.tar.gz (for ARMHF)"
+
+cd $WORK_DIR
+ls
