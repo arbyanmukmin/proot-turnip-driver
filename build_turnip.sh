@@ -128,20 +128,16 @@ if [ ! -f "$WORK_DIR/cross-arm64.ini" ]; then
     echo -e "${GREEN}Creating cross-compilation config for arm64...${NC}"
     cat > "$WORK_DIR/cross-arm64.ini" << EOF
 [binaries]
-c = 'aarch64-linux-gnu-gcc'
-cpp = 'aarch64-linux-gnu-g++'
-ar = 'aarch64-linux-gnu-ar'
-strip = 'aarch64-linux-gnu-strip'
-pkgconfig = 'pkg-config'
-
-[properties]
-sys_root = '/usr/aarch64-linux-gnu'
-pkg_config_libdir = '/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig'
+c = 'arm-linux-gnueabihf-gcc'
+cpp = 'arm-linux-gnueabihf-g++'
+ar = 'arm-linux-gnueabihf-ar'
+strip = 'arm-linux-gnueabihf-strip'
+pkgconfig = 'arm-linux-gnueabihf-pkg-config'
 
 [host_machine]
 system = 'linux'
-cpu_family = 'aarch64'
-cpu = 'armv8-a'
+cpu_family = 'arm'
+cpu = 'aarch64'
 endian = 'little'
 EOF
 fi
@@ -154,16 +150,12 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'pkg-config'
-
-[properties]
-sys_root = '/usr/arm-linux-gnueabihf'
-pkg_config_libdir = '/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig'
+pkgconfig = 'arm-linux-gnueabihf-pkg-config'
 
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
-cpu = 'armv7-a'
+cpu = 'armv7l'
 endian = 'little'
 EOF
 fi
