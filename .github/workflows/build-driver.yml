@@ -108,16 +108,16 @@ jobs:
           DATE=$(date +"%F" | sed 's/-//g')
           MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
           cd ${BUILD_PREFIX}
-          # Create DEBIAN directory and control file
-          mkdir -p ${MESA_64}/DEBIAN
-          echo "Package: mesa-vulkan-kgsl
-          Version: ${MESA_VER}-${DATE}
-          Architecture: arm64
-          Maintainer: playbyan1453
-          Description: Mesa Vulkan drivers with Turnip support for Termux's Proot environment
-          Depends: libc6 (>= 2.17), libdrm2 (>= 2.4.91), libwayland-client0 (>= 1.9.0), libx11-6, libxcb1
-          " > ${MESA_64}/DEBIAN/control
-          # Build the .deb package directly
+          # Create DEBIAN directory and control file with sudo
+          sudo mkdir -p ${MESA_64}/DEBIAN
+          sudo bash -c "echo 'Package: mesa-vulkan-drivers
+Version: ${MESA_VER}-${DATE}
+Architecture: arm64
+Maintainer: playbyan1453
+Description: Mesa Vulkan drivers with Turnip support for Termux's Proot environment
+Depends: libc6 (>= 2.17), libdrm2 (>= 2.4.91), libwayland-client0 (>= 1.9.0), libx11-6, libxcb1
+' > ${MESA_64}/DEBIAN/control"
+          # Build the .deb package with sudo
           sudo dpkg-deb --build --root-owner-group ${MESA_64}
 
       # Upload the artifact
