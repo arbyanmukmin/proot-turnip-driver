@@ -91,6 +91,8 @@ struct wsi_x11_vk_surface {
       VkIcdSurfaceXlib xlib;
       VkIcdSurfaceXcb xcb;
    };
+   VkExtent2D extent;
+   bool changed;
    bool has_alpha;
 };
 
@@ -688,23 +690,28 @@ x11_surface_get_capabilities(VkIcdSurfaceBase *icd_surface,
    struct wsi_x11_vk_surface *surface = (struct wsi_x11_vk_surface*)icd_surface;
    struct wsi_x11_connection *wsi_conn =
       wsi_x11_get_connection(wsi_device, conn);
-   xcb_get_geometry_cookie_t geom_cookie;
-   xcb_generic_error_t *err;
-   xcb_get_geometry_reply_t *geom;
 
-   geom_cookie = xcb_get_geometry(conn, window);
+   if (surface->changed) {
+      surface->changed = false;
+      xcb_get_geometry_cookie_t geom_cookie = xcb_get_geometry(conn, window);
+      xcb_get_geometry_reply_t *geom;
 
-   geom = xcb_get_geometry_reply(conn, geom_cookie, &err);
-   if (!geom)
-      return VK_ERROR_SURFACE_LOST_KHR;
-   {
+      geom = xcb_get_geometry_reply(conn, geom_cookie, NULL);
+      if (!geom)
+         return VK_ERROR_SURFACE_LOST_KHR;
+
       VkExtent2D extent = { geom->width, geom->height };
       caps->currentExtent = extent;
       caps->minImageExtent = extent;
       caps->maxImageExtent = extent;
+      surface->extent = extent;
+
+      free(geom);
+   } else {
+      caps->currentExtent = surface->extent;
+      caps->minImageExtent = surface->extent;
+      caps->maxImageExtent = surface->extent;
    }
-   free(err);
-   free(geom);
 
    if (surface->has_alpha) {
       caps->supportedCompositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR |
@@ -788,10 +795,6 @@ x11_surface_get_capabilities2(VkIcdSurfaceBase *icd_surface,
                compat->presentModeCount = 1;
             }
          } else {
-            if (!present_mode)
-               wsi_common_vk_warn_once("Use of VkSurfacePresentModeCompatibilityEXT "
-                                       "without a VkSurfacePresentModeEXT set. This is an "
-                                       "application bug.\n");
             compat->presentModeCount = 1;
          }
          break;
@@ -986,6 +989,7 @@ wsi_CreateXcbSurfaceKHR(VkInstance _instance,
    surface->xcb.window = pCreateInfo->window;
 
    surface->has_alpha = visual_has_alpha(visual, visual_depth);
+   surface->changed = true;
 
    *pSurface = VkIcdSurfaceBase_to_handle(&surface->xcb.base);
    return VK_SUCCESS;
@@ -1018,6 +1022,7 @@ wsi_CreateXlibSurfaceKHR(VkInstance _instance,
    surface->xlib.window = pCreateInfo->window;
 
    surface->has_alpha = visual_has_alpha(visual, visual_depth);
+   surface->changed = true;
 
    *pSurface = VkIcdSurfaceBase_to_handle(&surface->xlib.base);
    return VK_SUCCESS;
@@ -1047,6 +1052,7 @@ struct x11_swapchain {
    bool                                         has_mit_shm;
 
    xcb_connection_t *                           conn;
+   xcb_connection_t *                           capture_conn;
    xcb_window_t                                 window;
    xcb_gc_t                                     gc;
    uint32_t                                     depth;
@@ -1098,6 +1104,8 @@ struct x11_swapchain {
    uint64_t                                     present_queue_push_count;
    /* Total number of images returned to application in AcquireNextImage. */
    uint64_t                                     present_poll_acquire_count;
+
+   struct wsi_x11_vk_surface                   *surface;
 
    struct x11_image                             images[0];
 };
@@ -1230,8 +1238,11 @@ x11_handle_dri3_present_event(struct x11_swapchain *chain,
          return VK_ERROR_SURFACE_LOST_KHR;
 
       if (config->width != chain->extent.width ||
-          config->height != chain->extent.height)
+          config->height != chain->extent.height) {
+         chain->surface->extent.width = config->width;
+         chain->surface->extent.height = config->height;
          return VK_SUBOPTIMAL_KHR;
+      }
 
       break;
    }
@@ -1411,7 +1422,7 @@ x11_acquire_next_image_poll_find_index(struct x11_swapchain *chain, uint32_t *im
    for (uint32_t i = 0; i < chain->base.image_count; i++) {
       if (!chain->images[i].busy) {
          /* We found a non-busy image */
-         xshmfence_await(chain->images[i].shm_fence);
+         xcb_sync_await_fence(chain->conn, 1, &chain->images[i].sync_fence);
          *image_index = i;
          chain->images[i].busy = true;
          chain->present_poll_acquire_count++;
@@ -1567,7 +1578,7 @@ x11_acquire_next_image_from_queue(struct x11_swapchain *chain,
    }
 
    assert(image_index < chain->base.image_count);
-   xshmfence_await(chain->images[image_index].shm_fence);
+   xcb_sync_await_fence(chain->conn, 1, &chain->images[image_index].sync_fence);
 
    *image_index_out = image_index;
 
@@ -1606,7 +1617,7 @@ x11_present_to_x11_dri3(struct x11_swapchain *chain, uint32_t image_index,
       options |= XCB_PRESENT_OPTION_SUBOPTIMAL;
 #endif
 
-   xshmfence_reset(image->shm_fence);
+   xcb_sync_reset_fence(chain->conn, image->sync_fence);
 
    ++chain->sent_image_count;
    assert(chain->sent_image_count <= chain->base.image_count);
@@ -1688,36 +1699,24 @@ x11_present_to_x11_sw(struct x11_swapchain *chain, uint32_t image_index,
 static void
 x11_capture_trace(struct x11_swapchain *chain)
 {
-#ifdef XCB_KEYSYMS_AVAILABLE
-   VK_FROM_HANDLE(vk_device, device, chain->base.device);
-   if (!device->physical->instance->trace_mode)
+   if (!chain->capture_conn)
       return;
 
-   xcb_query_keymap_cookie_t keys_cookie = xcb_query_keymap(chain->conn);
+   xcb_generic_event_t *event;
+   while ((event = xcb_poll_for_event(chain->capture_conn))) {
+      if ((event->response_type & ~0x80) != XCB_KEY_PRESS) {
+         free(event);
+         continue;
+      }
 
-   xcb_generic_error_t *error = NULL;
-   xcb_query_keymap_reply_t *keys = xcb_query_keymap_reply(chain->conn, keys_cookie, &error);
-   if (error) {
-      free(error);
-      return;
-   }
-
-   xcb_key_symbols_t *key_symbols = xcb_key_symbols_alloc(chain->conn);
-   xcb_keycode_t *keycodes = xcb_key_symbols_get_keycode(key_symbols, XK_F1);
-   if (keycodes) {
-      xcb_keycode_t keycode = keycodes[0];
-      free(keycodes);
+      VK_FROM_HANDLE(vk_device, device, chain->base.device);
 
       simple_mtx_lock(&device->trace_mtx);
-      bool capture_key_pressed = keys->keys[keycode / 8] & (1u << (keycode % 8));
-      device->trace_hotkey_trigger = capture_key_pressed && (capture_key_pressed != chain->base.capture_key_pressed);
-      chain->base.capture_key_pressed = capture_key_pressed;
+      device->trace_hotkey_trigger = true;
       simple_mtx_unlock(&device->trace_mtx);
-   }
 
-   xcb_key_symbols_free(key_symbols);
-   free(keys);
-#endif
+      free(event);
+   }
 }
 
 /**
@@ -2104,7 +2103,6 @@ x11_image_init(VkDevice device_h, struct x11_swapchain *chain,
    xcb_generic_error_t *error = NULL;
    VkResult result;
    uint32_t bpp = 32;
-   int fence_fd;
 
    result = wsi_create_image(&chain->base, &chain->base.image_info,
                              &image->base);
@@ -2185,15 +2183,23 @@ x11_image_init(VkDevice device_h, struct x11_swapchain *chain,
       if (fd == -1)
          return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-      cookie =
-         xcb_dri3_pixmap_from_buffer_checked(chain->conn,
-                                             image->pixmap,
-                                             chain->window,
-                                             image->base.sizes[0],
-                                             pCreateInfo->imageExtent.width,
-                                             pCreateInfo->imageExtent.height,
-                                             image->base.row_pitches[0],
-                                             chain->depth, bpp, fd);
+      cookie = xcb_dri3_pixmap_from_buffers_checked(chain->conn,
+                                              image->pixmap,
+                                              chain->window,
+                                              image->base.num_planes,
+                                              pCreateInfo->imageExtent.width,
+                                              pCreateInfo->imageExtent.height,
+                                              image->base.row_pitches[0],
+                                              image->base.offsets[0],
+                                              0,
+                                              0,
+                                              0,
+                                              0,
+                                              0,
+                                              0,
+                                              chain->depth, bpp,
+                                              image->base.drm_modifier,
+                                              &fd);
    }
 
    error = xcb_request_check(chain->conn, cookie);
@@ -2203,28 +2209,18 @@ x11_image_init(VkDevice device_h, struct x11_swapchain *chain,
    }
 
 out_fence:
-   fence_fd = xshmfence_alloc_shm();
-   if (fence_fd < 0)
-      goto fail_pixmap;
-
-   image->shm_fence = xshmfence_map_shm(fence_fd);
-   if (image->shm_fence == NULL)
-      goto fail_shmfence_alloc;
-
    image->sync_fence = xcb_generate_id(chain->conn);
-   xcb_dri3_fence_from_fd(chain->conn,
-                          image->pixmap,
-                          image->sync_fence,
-                          false,
-                          fence_fd);
+   cookie = xcb_sync_create_fence_checked(chain->conn, image->pixmap, image->sync_fence, false);
+   xcb_generic_error_t *err = xcb_request_check(chain->conn, cookie);
+   if (err != NULL) {
+      free(err);
+      goto fail_pixmap;
+   }
 
    image->busy = false;
-   xshmfence_trigger(image->shm_fence);
-
+   xcb_sync_trigger_fence(chain->conn, image->sync_fence);
    return VK_SUCCESS;
 
-fail_shmfence_alloc:
-   close(fence_fd);
 
 fail_pixmap:
    cookie = xcb_free_pixmap(chain->conn, image->pixmap);
@@ -2246,7 +2242,6 @@ x11_image_finish(struct x11_swapchain *chain,
    if (!chain->base.wsi->sw || chain->has_mit_shm) {
       cookie = xcb_sync_destroy_fence(chain->conn, image->sync_fence);
       xcb_discard_reply(chain->conn, cookie.sequence);
-      xshmfence_unmap_shm(image->shm_fence);
 
       cookie = xcb_free_pixmap(chain->conn, image->pixmap);
       xcb_discard_reply(chain->conn, cookie.sequence);
@@ -2365,6 +2360,8 @@ x11_swapchain_destroy(struct wsi_swapchain *anv_chain,
                                              chain->window,
                                              XCB_PRESENT_EVENT_MASK_NO_EVENT);
    xcb_discard_reply(chain->conn, cookie.sequence);
+
+   xcb_disconnect(chain->capture_conn);
 
    pthread_mutex_destroy(&chain->present_poll_mutex);
    pthread_mutex_destroy(&chain->present_progress_mutex);
@@ -2649,6 +2646,24 @@ x11_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
    if (chain == NULL)
       return VK_ERROR_OUT_OF_HOST_MEMORY;
 
+#ifdef XCB_KEYSYMS_AVAILABLE
+   VK_FROM_HANDLE(vk_device, vk_device, device);
+   if (vk_device->capture_trace) {
+      chain->capture_conn = xcb_connect(NULL, NULL);
+      assert(!xcb_connection_has_error(chain->capture_conn));
+
+      xcb_key_symbols_t *key_symbols = xcb_key_symbols_alloc(conn);
+      xcb_keycode_t *keycodes = xcb_key_symbols_get_keycode(key_symbols, XK_F12);
+      if (keycodes) {
+         xcb_grab_key(chain->capture_conn, 1, window, XCB_MOD_MASK_ANY, keycodes[0],
+                      XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
+      }
+      xcb_key_symbols_free(key_symbols);
+
+      xcb_flush(chain->capture_conn);
+   }
+#endif
+
    int ret = pthread_mutex_init(&chain->present_progress_mutex, NULL);
    if (ret != 0) {
       vk_free(pAllocator, chain);
@@ -2727,13 +2742,17 @@ x11_surface_create_swapchain(VkIcdSurfaceBase *icd_surface,
    chain->status = VK_SUCCESS;
    chain->has_dri3_modifiers = wsi_conn->has_dri3_modifiers;
    chain->has_mit_shm = wsi_conn->has_mit_shm;
+   chain->surface = (struct wsi_x11_vk_surface*)icd_surface;
+   chain->surface->extent = pCreateInfo->imageExtent;
 
    /* When images in the swapchain don't fit the window, X can still present them, but it won't
     * happen by flip, only by copy. So this is a suboptimal copy, because if the client would change
     * the chain extents X may be able to flip
     */
-   if (chain->extent.width != cur_width || chain->extent.height != cur_height)
+   if (chain->extent.width != cur_width || chain->extent.height != cur_height) {
        chain->status = VK_SUBOPTIMAL_KHR;
+       chain->surface->changed = true;
+   }
 
    /* On a new swapchain this helper variable is set to false. Once we present it will have an
     * impact once we ever do at least one flip and go back to copying afterwards. It is presumed
