@@ -8,7 +8,7 @@ on:
     workflow_dispatch:
 
 env:
-    MESA_VERSION: '24.0.2'
+    MESA_VERSION: '25.0.1'
 
 jobs:
     build-turnip:
@@ -20,5 +20,4 @@ jobs:
 
             - name: Build Mesa with Turnip
               run: |
-                    chmod +x build_turnip.sh
                     bash build_turnip.sh "$MESA_VERSION"
