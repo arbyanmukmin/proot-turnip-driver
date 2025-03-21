@@ -110,14 +110,7 @@ jobs:
           cd ${BUILD_PREFIX}
           # Create DEBIAN directory and control file with sudo
           sudo mkdir -p ${MESA_64}/DEBIAN
-          sudo bash -c "echo 'Package: mesa-vulkan-drivers
-Version: ${MESA_VER}-${DATE}
-Architecture: arm64
-Maintainer: playbyan1453
-Description: Mesa Vulkan drivers with Turnip support for Termux's Proot environment
-Depends: libc6 (>= 2.17), libdrm2 (>= 2.4.91), libwayland-client0 (>= 1.9.0), libx11-6, libxcb1
-' > ${MESA_64}/DEBIAN/control"
-          # Build the .deb package with sudo
+          echo "Package: mesa-vulkan-drivers\nVersion: ${MESA_VER}-${DATE}\nArchitecture: arm64\nMaintainer: playbyan1453\nDescription: Mesa Vulkan drivers with Turnip support for Termux's Proot environment\nDepends: libc6 (>= 2.17), libdrm2 (>= 2.4.91), libwayland-client0 (>= 1.9.0), libx11-6, libxcb1" | sudo tee ${MESA_64}/DEBIAN/control > /dev/null
           sudo dpkg-deb --build --root-owner-group ${MESA_64}
 
       # Upload the artifact
