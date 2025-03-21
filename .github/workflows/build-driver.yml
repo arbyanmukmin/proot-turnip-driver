@@ -92,7 +92,8 @@ jobs:
           MESA_VER=$(cat ${MESA_PREFIX}/VERSION)
           DATE=$(date +"%F" | sed 's/-//g')
           MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
-          sudo meson build64/ --prefix /usr --libdir lib/aarch64-linux-gnu/ \
+          cd ${MESA_PREFIX}  # Change to the source directory containing meson.build
+          sudo meson setup build64/ --prefix /usr --libdir lib/aarch64-linux-gnu/ \
             -D platforms=x11,wayland -D gallium-drivers=freedreno \
             -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
             -D dri3=enabled -D buildtype=release -D glx=disabled \
