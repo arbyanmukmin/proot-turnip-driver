@@ -67,26 +67,30 @@ if [ ! -d "$MESA_SRC_DIR" ]; then
 fi
 
 # Apply patches from /patches folder
-if [ -d "$PATCHES_DIR" ]; then
-    echo -e "${GREEN}Applying patches from $PATCHES_DIR...${NC}"
-    cd "$MESA_SRC_DIR" || {
-        echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
-        exit 1
-    }
-    for patch in "$PATCHES_DIR"/*.patch; do
-        if [ -f "$patch" ]; then
-            echo -e "${GREEN}Applying patch: $(basename "$patch")${NC}"
-            patch -p1 < "$patch" || {
-                echo -e "${RED}Error: Failed to apply patch $patch${NC}" >&2
-                exit 1
-            }
-        else
-            echo -e "${WHITE}No .patch files found in $PATCHES_DIR${NC}"
-            break
-        fi
-    done
+if [ "$USE_PATCHES" ]; then
+    if [ -d "$PATCHES_DIR" ]; then
+        echo -e "${GREEN}Applying patches from $PATCHES_DIR...${NC}"
+        cd "$MESA_SRC_DIR" || {
+            echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
+            exit 1
+        }
+        for patch in "$PATCHES_DIR"/*.patch; do
+            if [ -f "$patch" ]; then
+                echo -e "${GREEN}Applying patch: $(basename "$patch")${NC}"
+                patch -p1 < "$patch" || {
+                    echo -e "${RED}Error: Failed to apply patch $patch${NC}" >&2
+                    exit 1
+                }
+            else
+                echo -e "${WHITE}No .patch files found in $PATCHES_DIR${NC}"
+                break
+            fi
+        done
+    else
+        echo -e "${WHITE}No patches directory found at $PATCHES_DIR, skipping patch application${NC}"
+    fi
 else
-    echo -e "${WHITE}No patches directory found at $PATCHES_DIR, skipping patch application${NC}"
+    echo -e "${WHITE}USE_PATCHES is false, skipping patch application${NC}"
 fi
 
 # Function to build Mesa for a specific architecture
