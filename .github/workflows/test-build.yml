@@ -1,0 +1,23 @@
+name: Test Build Script
+
+on:
+    # push:
+    #     branches: [main]
+    # pull_request:
+    #     branches: [main]
+    workflow_dispatch:
+
+env:
+    MESA_VERSION: '24.0.2'
+
+jobs:
+    build-turnip:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Build Mesa with Turnip
+              run: |
+                    bash build_turnip.sh "$MESA_VERSION"
