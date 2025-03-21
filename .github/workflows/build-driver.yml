@@ -1,12 +1,10 @@
 name: Build Mesa Turnip Debian Package
 
 on:
-  # push:
-    # branches:
-      # - main
-  # pull_request:
-    # branches:
-      # - main
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch: # Allows manual triggering
 
 jobs:
@@ -25,9 +23,7 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt-get update -y
           sudo apt-get upgrade -y
-          # Add src-deb repository (assuming default Ubuntu sources are sufficient; adjust if needed)
           sudo apt-get install -y software-properties-common
-          # Install dependencies for Mesa compilation
           sudo apt-get build-dep -y mesa
           sudo apt-get install -y pkg-config make cmake \
                                   g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
@@ -36,6 +32,12 @@ jobs:
                                   libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev \
                                   libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev \
                                   libwayland-dev wayland-protocols libwayland-egl-backend-dev libssl-dev
+
+      # Enable arm64 architecture
+      - name: Enable arm64 architecture
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update -y
 
       # Copy drm headers
       - name: Copy DRM headers
@@ -92,7 +94,7 @@ jobs:
           MESA_VER=$(cat ${MESA_PREFIX}/VERSION)
           DATE=$(date +"%F" | sed 's/-//g')
           MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
-          cd ${MESA_PREFIX}  # Change to the source directory containing meson.build
+          cd ${MESA_PREFIX}
           sudo meson setup build64/ --prefix /usr --libdir lib/aarch64-linux-gnu/ \
             -D platforms=x11,wayland -D gallium-drivers=freedreno \
             -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
@@ -103,6 +105,15 @@ jobs:
             -D llvm=disabled -D shared-llvm=disabled -D xmlconfig=disabled
           sudo meson compile -C build64/
           sudo meson install -C build64/ --destdir ${MESA_64}
+
+      # Upload built binaries as artifact (fallback)
+      - name: Upload built binaries as artifact
+        if: always()  # Runs even if packaging fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-turnip-binaries
+          path: ~/Desktop/mesa-vulkan-kgsl_*_arm64
+          retention-days: 7
 
       # Create Debian package
       - name: Create Debian package
@@ -121,8 +132,9 @@ jobs:
           sudo rm -rf ${MESA_64}/usr/share/drirc.d
           sudo dpkg-deb --build --root-owner-group ${MESA_64}
 
-      # Upload the artifact
+      # Upload Debian package as artifact
       - name: Upload Debian package as artifact
+        if: success()  # Only runs if packaging succeeds
         uses: actions/upload-artifact@v4
         with:
           name: mesa-turnip-deb
