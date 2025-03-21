@@ -74,7 +74,8 @@ build_mesa() {
 
     meson setup "$BUILD_DIR" \
     --cross-file "$CROSS_FILE" \
-    --prefix=/usr \
+    --prefix /usr \
+    --libdir lib/aarch64-linux-gnu/ \
     -Dplatforms=x11,wayland \
     -Dgallium-drivers=freedreno \
     -Dvulkan-drivers=freedreno \
@@ -82,19 +83,19 @@ build_mesa() {
     -Ddri3=enabled \
     -Dbuildtype=release \
     -Dglx=disabled \
-    -Degl=enabled \
+    -Degl=disabled \
     -Dgles1=disabled \
-    -Dgles2=enabled \
-    -Dopengl=true \
-    -Dshared-glapi=enabled \
-    -Dgbm=enabled \
-    -Dllvm=disabled \
-    -Dshared-llvm=disabled \
-    -Dxmlconfig=disabled \
+    -Dgles2=disabled \
+    -Dgallium-xa=disabled \
+    -Dopengl=false \
+    -Dshared-glapi=false \
     -Db_lto=true \
     -Db_ndebug=true \
     -Dcpp_rtti=false \
-    -Dgallium-xa=disabled \
+    -Dgbm=disabled \
+    -Dllvm=disabled \
+    -Dshared-llvm=disabled \
+    -Dxmlconfig=disabled \
     -Dbuildtype=release || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
@@ -132,7 +133,7 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'arm-linux-gnueabihf-pkg-config'
+pkgconfig = 'pkg-config'
 
 [host_machine]
 system = 'linux'
@@ -150,7 +151,7 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'arm-linux-gnueabihf-pkg-config'
+pkgconfig = 'pkg-config'
 
 [host_machine]
 system = 'linux'
@@ -165,8 +166,8 @@ echo -e "${GREEN}Starting ARM64 build...${NC}"
 build_mesa "arm64" "aarch64-linux-gnu"
 
 # Build for ARMHF (armv7hf)
-echo -e "${GREEN}Starting ARMHF build...${NC}"
-build_mesa "armhf" "arm-linux-gnueabihf"
+# echo -e "${GREEN}Starting ARMHF build...${NC}"
+# build_mesa "armhf" "arm-linux-gnueabihf"
 
 # Clean up source (optional, commented out by default)
 # echo -e "${GREEN}Cleaning up source directory...${NC}"
