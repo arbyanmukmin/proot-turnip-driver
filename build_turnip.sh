@@ -78,32 +78,17 @@ build_mesa() {
         echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
         exit 1
     }
-
-    meson setup "$BUILD_DIR" \
-    --cross-file "$CROSS_FILE" \
-    --prefix /usr \
-    --libdir lib/aarch64-linux-gnu/ \
-    -Dplatforms=x11,wayland \
-    -Dgallium-drivers=freedreno \
-    -Dvulkan-drivers=freedreno \
-    -Dfreedreno-kmds=msm,kgsl \
-    -Ddri3=enabled \
-    -Dbuildtype=release \
-    -Dglx=disabled \
-    -Degl=disabled \
-    -Dgles1=disabled \
-    -Dgles2=disabled \
-    -Dgallium-xa=disabled \
-    -Dopengl=false \
-    -Dshared-glapi=false \
-    -Db_lto=true \
-    -Db_ndebug=true \
-    -Dcpp_rtti=false \
-    -Dgbm=disabled \
-    -Dllvm=disabled \
-    -Dshared-llvm=disabled \
-    -Dxmlconfig=disabled \
-    -Dbuildtype=release || {
+    
+    # --cross-file "$CROSS_FILE" \
+    meson setup "$BUILD_DIR" --prefix /usr --libdir lib/aarch64-linux-gnu/ \
+    -D platforms=x11,wayland -D gallium-drivers=freedreno \
+    -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
+    -D dri3=enabled -D buildtype=release -D glx=disabled \
+    -D egl=disabled -D gles1=disabled -D gles2=disabled \
+    -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
+    -D b_lto=true -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
+    -D llvm=disabled -D shared-llvm=disabled -D xmlconfig=disabled \
+    -D buildtype=release || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
     }
@@ -140,8 +125,7 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'pkg-config'
-
+pkgconfig = 'arm-linux-gnueabihf-pkg-config'
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
@@ -158,7 +142,7 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'pkg-config'
+pkgconfig = 'arm-linux-gnueabihf-pkg-config'
 
 [host_machine]
 system = 'linux'
@@ -173,8 +157,8 @@ echo -e "${GREEN}Starting ARM64 build...${NC}"
 build_mesa "arm64" "aarch64-linux-gnu"
 
 # Build for ARMHF (armv7hf)
-# echo -e "${GREEN}Starting ARMHF build...${NC}"
-# build_mesa "armhf" "arm-linux-gnueabihf"
+echo -e "${GREEN}Starting ARMHF build...${NC}"
+build_mesa "armhf" "arm-linux-gnueabihf"
 
 # Clean up source (optional, commented out by default)
 # echo -e "${GREEN}Cleaning up source directory...${NC}"
