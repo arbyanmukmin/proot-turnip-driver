@@ -14,6 +14,10 @@ on:
         required: false
         default: '24.0.2'
 
+env:
+  MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.0.2' }}
+  BUILD_DATE: ${{ steps.set-date.outputs.date }}
+
 jobs:
   build-turnip:
     runs-on: ubuntu-latest
@@ -28,7 +32,7 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt-get update -y
-          sudo apt-get upgrade -y
+          # sudo apt-get upgrade -y
           sudo apt-get install -y software-properties-common
           sudo apt-get build-dep -y mesa
           sudo apt-get install -y pkg-config make cmake \
@@ -37,13 +41,10 @@ jobs:
           sudo apt-get install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
                                   libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev \
                                   libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev \
-                                  libwayland-dev wayland-protocols libwayland-egl-backend-dev libssl-dev
+                                  libwayland-dev wayland-protocols libwayland-egl-backend-dev # libssl-dev
           sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
-        env:
-          MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.0.2' }}
-          BUILD_DATE: ${DATE}
         run: |
           chmod +x build_turnip.sh
           echo "Building Mesa version: $MESA_VERSION"
@@ -52,11 +53,11 @@ jobs:
       - name: Upload ARM64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-turnip-${{ github.event.inputs.mesa-version || '24.0.2' }}-arm64
-          path: ~/mesa-cross-build/mesa-${{ github.event.inputs.mesa-version || '24.0.2' }}-aarch64.tar.gz
+          name: mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-arm64
+          path: ~/mesa-cross-build/mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-arm64.tar.gz
 
       - name: Upload ARMHF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-turnip-${{ github.event.inputs.mesa-version || '24.0.2' }}-armhf
-          path: ~/mesa-cross-build/mesa-${{ github.event.inputs.mesa-version || '24.0.2' }}-armhf.tar.gz
+          name: mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-armhf
+          path: ~/mesa-cross-build/mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-armhf.tar.gz
