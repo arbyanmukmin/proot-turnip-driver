@@ -1,6 +1,10 @@
 name: Build Mesa with Turnip driver for ARM64 and ARMHF
 
 on:
+    # push:
+    #     branches: [main]
+    # pull_request:
+    #     branches: [main]
     workflow_dispatch:
         inputs:
             mesa-version:
@@ -17,10 +21,10 @@ jobs:
 
         steps:
             - name: Checkout Repository
-                uses: actions/checkout@v4
+              uses: actions/checkout@v4
 
             - name: Set up build environment
-                run: |
+              run: |
                     sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
                     sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
                     sudo apt-get update -y
@@ -37,19 +41,19 @@ jobs:
                     sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
             - name: Build Mesa with Turnip
-                run: |
+              run: |
                     chmod +x build_turnip.sh
                     echo "Building Mesa version: $MESA_VERSION"
                     bash build_turnip.sh "$MESA_VERSION"
 
             - name: Upload ARM64 Artifact
-                uses: actions/upload-artifact@v4
-                with:
-                    name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
-                    path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-arm64.tar.gz
+              uses: actions/upload-artifact@v4
+              with:
+                  name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
+                  path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-arm64.tar.gz
 
             - name: Upload ARMHF Artifact
-                uses: actions/upload-artifact@v4
-                with:
-                    name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
-                    path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-armhf.tar.gz
+              uses: actions/upload-artifact@v4
+              with:
+                  name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
+                  path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-armhf.tar.gz
