@@ -17,26 +17,25 @@ MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
 BUILD_DATE=$(date +"%F" | sed 's/-//g')
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
-# https://gitlab.freedesktop.org/Danil/mesa/-/archive/turnip/feature/a7xx-basic-support/mesa-turnip-feature-a7xx-basic-support.tar.gz
-# WORK_DIR="${HOME}/mesa-turnip-feature-a7xx-basic-support"
-# MESA_TARBALL="mesa-turnip-feature-a7xx-basic-support.tar.gz"
-# MESA_URL="https://gitlab.freedesktop.org/Danil/mesa/-/archive/turnip/feature/a7xx-basic-support/$MESA_TARBALL"
-# MESA_SRC_DIR="$WORK_DIR/mesa-turnip-feature-a7xx-basic-support"
+# https://gitlab.freedesktop.org/Danil/mesa/-/archive/review/a750-changes/mesa-review-a750-changes.tar.gz
+# MESA_TARBALL="mesa-review-a750-changes.tar.gz"
+# MESA_URL="https://gitlab.freedesktop.org/Danil/mesa/-/archive/review/a750-changes/$MESA_TARBALL"
 
 # Set working directory and Mesa tarball details
-WORK_DIR="${HOME}/mesa-mesa-$MESA_VERSION"
 MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
 MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
-MESA_SRC_DIR="$WORK_DIR/mesa-mesa-$MESA_VERSION"
 
-OUTPUT_DIR="${HOME}/mesa-build"  # Align with workflow
+WORK_DIR="$HOME/mesa-$MESA_VERSION"
+MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION-src"
+OUTPUT_DIR="$HOME/mesa-build"
+PATCHES_DIR="$GITHUB_WORKSPACE/patches"
 
 # Ensure working and output directories exist
 mkdir -p "$WORK_DIR" || {
     echo -e "${RED}Error: Failed to create working directory $WORK_DIR${NC}" >&2
     exit 1
 }
-mkdir -p "$OUTPUT_DIR" || {
+mkdir -p "$OUTPUT_DIR" || 
     echo -e "${RED}Error: Failed to create output directory $OUTPUT_DIR${NC}" >&2
     exit 1
 }
@@ -61,6 +60,29 @@ if [ ! -d "$MESA_SRC_DIR" ]; then
         echo -e "${RED}Error: Failed to extract $MESA_TARBALL${NC}" >&2
         exit 1
     }
+fi
+
+# Apply patches from /patches folder
+if [ -d "$PATCHES_DIR" ]; then
+    echo -e "${GREEN}Applying patches from $PATCHES_DIR...${NC}"
+    cd "$MESA_SRC_DIR" || {
+        echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
+        exit 1
+    }
+    for patch in "$PATCHES_DIR"/*.patch; do
+        if [ -f "$patch" ]; then
+            echo -e "${GREEN}Applying patch: $(basename "$patch")${NC}"
+            patch -p1 < "$patch" || {
+                echo -e "${RED}Error: Failed to apply patch $patch${NC}" >&2
+                exit 1
+            }
+        else
+            echo -e "${WHITE}No .patch files found in $PATCHES_DIR${NC}"
+            break
+        fi
+    done
+else
+    echo -e "${WHITE}No patches directory found at $PATCHES_DIR, skipping patch application${NC}"
 fi
 
 # Function to build Mesa for a specific architecture
