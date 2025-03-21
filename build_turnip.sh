@@ -55,9 +55,13 @@ fi
 
 # Extract tarball if source directory doesn't exist
 if [ ! -d "$MESA_SRC_DIR" ]; then
-    echo -e "${GREEN}Extracting Mesa $MESA_VERSION...${NC}"
-    tar -xf "$MESA_TARBALL" -C "$WORK_DIR" || {
-        echo -e "${RED}Error: Failed to extract $MESA_TARBALL${NC}" >&2
+    echo -e "${GREEN}Extracting Mesa $MESA_VERSION into $MESA_SRC_DIR...${NC}"
+    mkdir -p "$MESA_SRC_DIR" || {
+        echo -e "${RED}Error: Failed to create $MESA_SRC_DIR${NC}" >&2
+        exit 1
+    }
+    tar -xf "$MESA_TARBALL" --strip-components=1 -C "$MESA_SRC_DIR" || {
+        echo -e "${RED}Error: Failed to extract $MESA_TARBALL into $MESA_SRC_DIR${NC}" >&2
         exit 1
     }
 fi
