@@ -70,7 +70,7 @@ build_mesa() {
     local BUILD_DIR="$WORK_DIR/build-$ARCH"
     local INSTALL_DIR="$WORK_DIR/install-$ARCH"
     local BUILD_DATE=$(date +'%Y%m%d')  # Define dynamically
-    local OUTPUT_TARBALL="$OUTPUT_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-$ARCH.tar.gz"
+    local OUTPUT_FILE="$OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-$ARCH.deb"
 
     # Ensure cross-file exists
     if [ ! -f "$CROSS_FILE" ]; then
@@ -120,9 +120,35 @@ build_mesa() {
         exit 1
     }
 
-    echo -e "${GREEN}Packaging $ARCH build...${NC}"
-    tar -C "$INSTALL_DIR" -czf "$OUTPUT_TARBALL" . || {
-        echo -e "${RED}Error: Failed to create tarball $OUTPUT_TARBALL${NC}" >&2
+    echo -e "${GREEN}Packaging $ARCH build as .deb...${NC}"
+    # Create DEBIAN directory for package metadata
+    mkdir -p "$INSTALL_DIR/DEBIAN" || {
+        echo -e "${RED}Error: Failed to create DEBIAN directory in $INSTALL_DIR${NC}" >&2
+        exit 1
+    }
+
+    # Write the control file
+    cat > "$INSTALL_DIR/DEBIAN/control" << EOF
+Package: mesa-vulkan-drivers
+Source: mesa
+Version: ${MESA_VERSION}-${BUILD_DATE}
+Architecture: ${ARCH}
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Depends: libvulkan1, python3:any, libc6 (>= 2.38), libdrm-amdgpu1 (>= 2.4.121), libdrm2 (>= 2.4.121), libelf1t64 (>= 0.142), libexpat1 (>= 2.0.1), libgcc-s1 (>= 4.2), libllvm19 (>= 1:19.1.0), libstdc++6 (>= 11), libwayland-client0 (>= 1.23.0), libx11-xcb1 (>= 2:1.8.7), libxcb-dri3-0 (>= 1.17.0), libxcb-present0 (>= 1.17.0), libxcb-randr0 (>= 1.13), libxcb-shm0, libxcb-sync1, libxcb-xfixes0, libxcb1 (>= 1.9.2), libxshmfence1, libzstd1 (>= 1.5.5), zlib1g (>= 1:1.2.3.3)
+Provides: vulkan-icd
+Section: libs
+Priority: optional
+Multi-Arch: same
+Homepage: https://mesa3d.org/
+Description: Mesa Vulkan graphics drivers
+ Vulkan is a low-overhead 3D graphics and compute API. This package
+ includes Vulkan drivers provided by the Mesa project.
+Original-Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
+EOF
+
+    # Build the .deb package
+    dpkg-deb --build --root-owner-group "$INSTALL_DIR" "$OUTPUT_FILE" || {
+        echo -e "${RED}Error: Failed to create .deb package $OUTPUT_FILE${NC}" >&2
         exit 1
     }
 }
