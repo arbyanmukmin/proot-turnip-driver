@@ -91,7 +91,7 @@ build_mesa() {
         LIBDIR="lib/arm-linux-gnueabihf"
     fi
 
-    meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
+    meson setup "$BUILD_DIR" --prefix /usr --libdir "$LIBDIR" \
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
         -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
         -D dri3=enabled -D buildtype=release -D glx=disabled \
@@ -132,11 +132,11 @@ if [ ! -f "$WORK_DIR/cross-arm64.ini" ]; then
     echo -e "${GREEN}Creating cross-compilation config for arm64...${NC}"
     cat > "$WORK_DIR/cross-arm64.ini" << EOF
 [binaries]
-c = 'arm-linux-gnueabihf-gcc'
-cpp = 'arm-linux-gnueabihf-g++'
-ar = 'arm-linux-gnueabihf-ar'
-strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'arm-linux-gnueabihf-pkg-config'
+c = 'aarch64-linux-gnu-gcc'
+cpp = 'aarch64-linux-gnu-g++'
+ar = 'aarch64-linux-gnu-ar'
+strip = 'aarch64-linux-gnu-strip'
+pkgconfig = 'aarch64-linux-gnu-pkg-config'
 
 [host_machine]
 system = 'linux'
