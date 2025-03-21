@@ -28,9 +28,15 @@ MESA_TARBALL="mesa-turnip-feature-a7xx-basic-support.tar.gz"
 MESA_URL="https://gitlab.freedesktop.org/Danil/mesa/-/archive/turnip/feature/a7xx-basic-support/$MESA_TARBALL"
 MESA_SRC_DIR="$WORK_DIR/mesa-turnip-feature-a7xx-basic-support"
 
-# Ensure working directory exists
+OUTPUT_DIR="${HOME}/mesa-cross-build"  # Align with workflow
+
+# Ensure working and output directories exist
 mkdir -p "$WORK_DIR" || {
     echo -e "${RED}Error: Failed to create working directory $WORK_DIR${NC}" >&2
+    exit 1
+}
+mkdir -p "$OUTPUT_DIR" || {
+    echo -e "${RED}Error: Failed to create output directory $OUTPUT_DIR${NC}" >&2
     exit 1
 }
 cd "$WORK_DIR" || {
@@ -42,7 +48,7 @@ cd "$WORK_DIR" || {
 if [ ! -f "$MESA_TARBALL" ]; then
     echo -e "${GREEN}Downloading Mesa $MESA_VERSION...${NC}"
     wget --continue "$MESA_URL" || {
-        echo -e "${RED}Error: Failed to download Mesa $MESA_VERSION from $MESA_URL${NC}" >&2
+        echo -e "${RED}Error: Failed to download Mesa from $MESA_URL${NC}" >&2
         exit 1
     }
 fi
@@ -58,13 +64,13 @@ fi
 
 # Function to build Mesa for a specific architecture
 build_mesa() {
-    BUILD_DATE=$DATE
     local ARCH=$1
     local TRIPLE=$2
     local CROSS_FILE="$WORK_DIR/cross-$ARCH.ini"
     local BUILD_DIR="$WORK_DIR/build-$ARCH"
     local INSTALL_DIR="$WORK_DIR/install-$ARCH"
-    local OUTPUT_TARBALL="$WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-$ARCH.tar.gz"
+    local BUILD_DATE=$(date +'%Y%m%d')  # Define dynamically
+    local OUTPUT_TARBALL="$OUTPUT_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-$ARCH.tar.gz"
 
     # Ensure cross-file exists
     if [ ! -f "$CROSS_FILE" ]; then
@@ -73,22 +79,27 @@ build_mesa() {
     fi
 
     echo -e "${GREEN}Configuring Mesa for $ARCH...${NC}"
-    ls
     cd "$MESA_SRC_DIR" || {
         echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
         exit 1
     }
     
-    # --cross-file "$CROSS_FILE" \
-    meson setup "$BUILD_DIR" --prefix /usr --libdir lib/aarch64-linux-gnu/ \
-    -D platforms=x11,wayland -D gallium-drivers=freedreno \
-    -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
-    -D dri3=enabled -D buildtype=release -D glx=disabled \
-    -D egl=disabled -D gles1=disabled -D gles2=disabled \
-    -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
-    -D b_lto=true -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
-    -D llvm=disabled -D shared-llvm=disabled -D xmlconfig=disabled \
-    -D buildtype=release || {
+    # Configure with appropriate libdir for architecture
+    if [ "$ARCH" = "arm64" ]; then
+        LIBDIR="lib/aarch64-linux-gnu"
+    else  # armhf
+        LIBDIR="lib/arm-linux-gnueabihf"
+    fi
+
+    meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
+        -D platforms=x11,wayland -D gallium-drivers=freedreno \
+        -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
+        -D dri3=enabled -D buildtype=release -D glx=disabled \
+        -D egl=disabled -D gles1=disabled -D gles2=disabled \
+        -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
+        -D b_lto=true -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
+        -D llvm=disabled -D shared-llvm=disabled -D xmlconfig=disabled \
+        -D buildtype=release || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
     }
@@ -121,11 +132,12 @@ if [ ! -f "$WORK_DIR/cross-arm64.ini" ]; then
     echo -e "${GREEN}Creating cross-compilation config for arm64...${NC}"
     cat > "$WORK_DIR/cross-arm64.ini" << EOF
 [binaries]
-c = 'arm-linux-gnueabihf-gcc'
-cpp = 'arm-linux-gnueabihf-g++'
-ar = 'arm-linux-gnueabihf-ar'
-strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = 'arm-linux-gnueabihf-pkg-config'
+c = 'aarch64-linux-gnu-gcc'
+cpp = 'aarch64-linux-gnu-g++'
+ar = 'aarch64-linux-gnu-ar'
+strip = 'aarch64-linux-gnu-strip'
+pkgconfig = 'aarch64-linux-gnu-pkg-config'
+
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
@@ -166,8 +178,5 @@ build_mesa "armhf" "arm-linux-gnueabihf"
 
 echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled for ARM64 and ARMHF successfully!${NC}"
 echo -e "${GREEN}Output files:${NC}"
-echo -e "  - $WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-arm64.tar.gz (for ARM64)"
-echo -e "  - $WORK_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-armhf.tar.gz (for ARMHF)"
-
-cd $WORK_DIR
-ls
+echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-arm64.tar.gz (for ARM64)"
+echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-armhf.tar.gz (for ARMHF)"
