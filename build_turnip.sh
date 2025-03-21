@@ -25,9 +25,9 @@ echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $M
 MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
 MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
 
-WORK_DIR="$HOME/mesa-$MESA_VERSION"
+WORK_DIR="${HOME}/mesa-$MESA_VERSION"
 MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION-src"
-OUTPUT_DIR="$HOME/mesa-build"
+OUTPUT_DIR="${HOME}/mesa-build"
 PATCHES_DIR="${GITHUB_WORKSPACE:-$(pwd)}/patches"
 
 # Ensure working and output directories exist
