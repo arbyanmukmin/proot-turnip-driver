@@ -81,10 +81,7 @@ jobs:
           wget -O dri.zip https://github.com/xDoge26/proot-setup/files/12564533/dri.zip
           unzip dri.zip -d ${MESA_PREFIX}
           cd ${MESA_PREFIX}
-          git init
-          git add .
-          git commit -m "Initial commit"
-          git apply -v wsi-termux-x11-v3.patch
+          patch -p1 -i wsi-termux-x11-v3.patch
           cp wsi_common_x11.c src/vulkan/wsi/wsi_common_x11.c
 
       # Build Mesa Turnip
