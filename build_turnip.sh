@@ -28,7 +28,7 @@ MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/
 WORK_DIR="$HOME/mesa-$MESA_VERSION"
 MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION-src"
 OUTPUT_DIR="$HOME/mesa-build"
-PATCHES_DIR="$GITHUB_WORKSPACE/patches"
+PATCHES_DIR="${GITHUB_WORKSPACE:-$(pwd)}/patches"
 
 # Ensure working and output directories exist
 mkdir -p "$WORK_DIR" || {
