@@ -73,6 +73,7 @@ build_mesa() {
     fi
 
     echo -e "${GREEN}Configuring Mesa for $ARCH...${NC}"
+    ls
     cd "$MESA_SRC_DIR" || {
         echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
         exit 1
