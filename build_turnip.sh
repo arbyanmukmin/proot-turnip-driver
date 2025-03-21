@@ -12,8 +12,9 @@ WHITE='\033[0;37m'
 RED='\033[0;31m'
 NC='\033[0m'  # No Color
 
-# Get Mesa version from argument, environment variable, or default to 24.0.2
+# Set environment variables
 MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
+BUILD_DATE=$(date +"%F" | sed 's/-//g')
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
 # Set working directory and Mesa tarball details
@@ -69,7 +70,6 @@ build_mesa() {
     local CROSS_FILE="$WORK_DIR/cross-$ARCH.ini"
     local BUILD_DIR="$WORK_DIR/build-$ARCH"
     local INSTALL_DIR="$WORK_DIR/install-$ARCH"
-    local BUILD_DATE=$(date +'%Y%m%d')  # Define dynamically
     local OUTPUT_FILE="$OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-$ARCH.deb"
 
     # Ensure cross-file exists
