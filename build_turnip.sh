@@ -35,7 +35,7 @@ mkdir -p "$WORK_DIR" || {
     echo -e "${RED}Error: Failed to create working directory $WORK_DIR${NC}" >&2
     exit 1
 }
-mkdir -p "$OUTPUT_DIR" || 
+mkdir -p "$OUTPUT_DIR" || {
     echo -e "${RED}Error: Failed to create output directory $OUTPUT_DIR${NC}" >&2
     exit 1
 }
