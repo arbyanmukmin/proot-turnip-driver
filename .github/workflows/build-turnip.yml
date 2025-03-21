@@ -1,4 +1,6 @@
-name: Build Turnip Mesa for ARM64 and ARMHF
+# Based of this reply from hansm629:
+# https://github.com/xDoge26/proot-setup/issues/26#issuecomment-1712404849
+name: Build Mesa with Turnip driver for ARM64 and ARMHF
 
 on:
   # push:
