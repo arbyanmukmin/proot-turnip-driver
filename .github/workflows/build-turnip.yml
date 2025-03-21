@@ -50,10 +50,10 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
-                  path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-arm64.tar.gz
+                  path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-arm64.*
 
             - name: Upload ARMHF Artifact
               uses: actions/upload-artifact@v4
               with:
                   name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
-                  path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-armhf.tar.gz
+                  path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-armhf.*
