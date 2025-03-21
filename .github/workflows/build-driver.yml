@@ -1,4 +1,4 @@
-name: Build Mesa Turnip Debian Package
+name: Build Mesa Turnip Binaries
 
 on:
   push:
@@ -25,7 +25,8 @@ jobs:
           sudo apt-get upgrade -y
           sudo apt-get install -y software-properties-common
           sudo apt-get build-dep -y mesa
-          sudo apt-get install -y pkg-config make cmake \
+          sudo apt-get install -y pkg-config
+          sudo apt-get install -y make cmake \
                                   g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
                                   gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
           sudo apt-get install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
@@ -33,7 +34,7 @@ jobs:
                                   libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev \
                                   libwayland-dev wayland-protocols libwayland-egl-backend-dev libssl-dev
 
-      # Copy drm headers
+      # Copy DRM headers
       - name: Copy DRM headers
         run: |
           sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
@@ -41,7 +42,7 @@ jobs:
       # Set up build directories and download Mesa source
       - name: Download Mesa source
         run: |
-          BUILD_PREFIX=~/Desktop
+          BUILD_PREFIX=${{ github.workspace }}/build
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           mkdir -p ${BUILD_PREFIX}
           wget --continue --directory-prefix ${BUILD_PREFIX} \
@@ -51,17 +52,18 @@ jobs:
       # Configure Mesa build
       - name: Configure Mesa build
         run: |
-          BUILD_PREFIX=~/Desktop
+          BUILD_PREFIX=${{ github.workspace }}/build
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           MESA_VER=$(cat ${MESA_PREFIX}/VERSION)
           DATE=$(date +"%F" | sed 's/-//g')
-          MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
+          echo "MESA_VER=${MESA_VER}" >> $GITHUB_ENV
+          echo "DATE=${DATE}" >> $GITHUB_ENV
           echo "[binaries]
-          c = 'arm-linux-gnueabihf-gcc'
-          cpp = 'arm-linux-gnueabihf-g++'
-          ar = 'arm-linux-gnueabihf-ar'
-          strip = 'arm-linux-gnueabihf-strip'
-          pkgconfig = 'arm-linux-gnueabihf-pkg-config'
+          c = 'aarch64-linux-gnu-gcc'
+          cpp = 'aarch64-linux-gnu-g++'
+          ar = 'aarch64-linux-gnu-ar'
+          strip = 'aarch64-linux-gnu-strip'
+          pkgconfig = 'aarch64-linux-gnu-pkg-config'
 
           [host_machine]
           system = 'linux'
@@ -72,7 +74,7 @@ jobs:
       # Download and apply the patch
       - name: Download and apply DRI patch
         run: |
-          BUILD_PREFIX=~/Desktop
+          BUILD_PREFIX=${{ github.workspace }}/build
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           wget -O dri.zip https://github.com/xDoge26/proot-setup/files/12564533/dri.zip
           unzip dri.zip -d ${MESA_PREFIX}
@@ -80,16 +82,13 @@ jobs:
           patch -p1 -i wsi-termux-x11-v3.patch
           cp wsi_common_x11.c src/vulkan/wsi/wsi_common_x11.c
 
-      # Build Mesa Turnip
-      - name: Build Mesa Turnip
+      # Build Mesa Turnip binaries
+      - name: Build Mesa Turnip binaries
         run: |
-          BUILD_PREFIX=~/Desktop
+          BUILD_PREFIX=${{ github.workspace }}/build
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
-          MESA_VER=$(cat ${MESA_PREFIX}/VERSION)
-          DATE=$(date +"%F" | sed 's/-//g')
-          MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
           cd ${MESA_PREFIX}
-          sudo meson setup build64/ --prefix /usr --libdir lib/aarch64-linux-gnu/ \
+          meson setup build64/ --cross-file arm.txt --prefix /usr --libdir lib/aarch64-linux-gnu/ \
             -D platforms=x11,wayland -D gallium-drivers=freedreno \
             -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
             -D dri3=enabled -D buildtype=release -D glx=disabled \
@@ -97,26 +96,20 @@ jobs:
             -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
             -D b_lto=true -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
             -D llvm=disabled -D shared-llvm=disabled -D xmlconfig=disabled
-          sudo meson compile -C build64/
-          sudo meson install -C build64/ --destdir ${MESA_64}
+          meson compile -C build64/
 
-      # Create Debian package
-      - name: Create Debian package
+      # Package binaries into a tarball
+      - name: Package binaries as tarball
         run: |
-          BUILD_PREFIX=~/Desktop
-          MESA_VER=$(cat ${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support/VERSION)
-          DATE=$(date +"%F" | sed 's/-//g')
-          MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
-          cd ${BUILD_PREFIX}
-          # Create DEBIAN directory and control file with sudo
-          sudo mkdir -p ${MESA_64}/DEBIAN
-          echo "Package: mesa-vulkan-drivers\nVersion: ${MESA_VER}-${DATE}\nArchitecture: arm64\nMaintainer: playbyan1453\nDescription: Mesa Vulkan drivers with Turnip support for Termux's Proot environment\nDepends: libc6 (>= 2.17), libdrm2 (>= 2.4.91), libwayland-client0 (>= 1.9.0), libx11-6, libxcb1" | sudo tee ${MESA_64}/DEBIAN/control > /dev/null
-          sudo dpkg-deb --build --root-owner-group ${MESA_64}
+          BUILD_PREFIX=${{ github.workspace }}/build
+          MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
+          cd ${MESA_PREFIX}
+          tar -czf mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}.tar.gz build64/
 
-      # Upload the artifact
-      - name: Upload Debian package as artifact
+      # Upload the tarball as an artifact
+      - name: Upload binaries as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-turnip-deb
-          path: ~/Desktop/mesa-vulkan-kgsl_*.deb
+          name: mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}
+          path: ${{ github.workspace }}/build/mesa-turnip-feature-a7xx-basic-support/mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}.tar.gz
           retention-days: 7
