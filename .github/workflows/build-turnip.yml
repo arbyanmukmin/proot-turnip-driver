@@ -28,7 +28,7 @@ jobs:
                     sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
                     sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
                     sudo apt-get update -y
-                    sudo apt-get upgrade -y
+                    # sudo apt-get upgrade -y
                     sudo apt-get install -y software-properties-common ninja-build
                     sudo apt-get build-dep -y mesa
                     sudo apt-get install -y pkg-config make cmake \
@@ -42,7 +42,7 @@ jobs:
 
             - name: Build Mesa with Turnip
               run: |
-                    chmod +x build_turnip.sh
+                    # chmod +x build_turnip.sh
                     echo "Building Mesa version: $MESA_VERSION"
                     bash build_turnip.sh "$MESA_VERSION"
 
