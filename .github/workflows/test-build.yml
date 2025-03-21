@@ -20,4 +20,5 @@ jobs:
 
             - name: Build Mesa with Turnip
               run: |
+                    chmod +x build_turnip.sh
                     bash build_turnip.sh "$MESA_VERSION"
