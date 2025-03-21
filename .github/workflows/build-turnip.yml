@@ -30,7 +30,7 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
           sudo apt build-dep mesa
-          sudo apt install -y make cmake git wget vulkan-tools mesa-utils \
+          sudo apt install -y make cmake pkg-config \
                               g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
                               gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
           sudo apt install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
