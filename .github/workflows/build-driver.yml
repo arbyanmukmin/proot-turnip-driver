@@ -105,6 +105,6 @@ jobs:
       - name: Upload binaries as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}
-          path: ~/Desktop/mesa-vulkan-kgsl_${{ env.MESA_VER }}-${{ env.DATE }}_arm64.tar.gz
+          name: mesa-turnip-binaries
+          path: ~/Desktop/mesa-vulkan-kgsl_*_arm64.tar.gz
           retention-days: 7
