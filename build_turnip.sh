@@ -17,10 +17,16 @@ MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
 # Set working directory and Mesa tarball details
-WORK_DIR="${HOME}/mesa-mesa-$MESA_VERSION"
-MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
-MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
-MESA_SRC_DIR="$WORK_DIR/mesa-mesa-$MESA_VERSION"
+# WORK_DIR="${HOME}/mesa-mesa-$MESA_VERSION"
+# MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
+# MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
+# MESA_SRC_DIR="$WORK_DIR/mesa-mesa-$MESA_VERSION"
+
+# https://gitlab.freedesktop.org/Danil/mesa/-/archive/turnip/feature/a7xx-basic-support/mesa-turnip-feature-a7xx-basic-support.tar.gz
+WORK_DIR="${HOME}/mesa-turnip-feature-a7xx-basic-support"
+MESA_TARBALL="mesa-turnip-feature-a7xx-basic-support.tar.gz"
+MESA_URL="https://gitlab.freedesktop.org/Danil/mesa/-/archive/turnip/feature/a7xx-basic-support/$MESA_TARBALL"
+MESA_SRC_DIR="$WORK_DIR/mesa-turnip-feature-a7xx-basic-support"
 
 # Ensure working directory exists
 mkdir -p "$WORK_DIR" || {
