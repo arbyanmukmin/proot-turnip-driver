@@ -25,8 +25,7 @@ jobs:
           sudo apt-get upgrade -y
           sudo apt-get install -y software-properties-common
           sudo apt-get build-dep -y mesa
-          sudo apt-get install -y pkg-config
-          sudo apt-get install -y make cmake \
+          sudo apt-get install -y pkg-config make cmake \
                                   g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
                                   gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
           sudo apt-get install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
@@ -42,7 +41,7 @@ jobs:
       # Set up build directories and download Mesa source
       - name: Download Mesa source
         run: |
-          BUILD_PREFIX=${{ github.workspace }}/build
+          BUILD_PREFIX=~/Desktop
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           mkdir -p ${BUILD_PREFIX}
           wget --continue --directory-prefix ${BUILD_PREFIX} \
@@ -52,12 +51,14 @@ jobs:
       # Configure Mesa build
       - name: Configure Mesa build
         run: |
-          BUILD_PREFIX=${{ github.workspace }}/build
+          BUILD_PREFIX=~/Desktop
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           MESA_VER=$(cat ${MESA_PREFIX}/VERSION)
           DATE=$(date +"%F" | sed 's/-//g')
+          MESA_64=${BUILD_PREFIX}/mesa-vulkan-kgsl_${MESA_VER}-${DATE}_arm64
           echo "MESA_VER=${MESA_VER}" >> $GITHUB_ENV
           echo "DATE=${DATE}" >> $GITHUB_ENV
+          echo "MESA_64=${MESA_64}" >> $GITHUB_ENV
           echo "[binaries]
           c = 'aarch64-linux-gnu-gcc'
           cpp = 'aarch64-linux-gnu-g++'
@@ -74,7 +75,7 @@ jobs:
       # Download and apply the patch
       - name: Download and apply DRI patch
         run: |
-          BUILD_PREFIX=${{ github.workspace }}/build
+          BUILD_PREFIX=~/Desktop
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           wget -O dri.zip https://github.com/xDoge26/proot-setup/files/12564533/dri.zip
           unzip dri.zip -d ${MESA_PREFIX}
@@ -82,10 +83,10 @@ jobs:
           patch -p1 -i wsi-termux-x11-v3.patch
           cp wsi_common_x11.c src/vulkan/wsi/wsi_common_x11.c
 
-      # Build Mesa Turnip binaries
-      - name: Build Mesa Turnip binaries
+      # Build Mesa Turnip
+      - name: Build Mesa Turnip
         run: |
-          BUILD_PREFIX=${{ github.workspace }}/build
+          BUILD_PREFIX=~/Desktop
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           cd ${MESA_PREFIX}
           meson setup build64/ --cross-file arm.txt --prefix /usr --libdir lib/aarch64-linux-gnu/ \
@@ -98,18 +99,18 @@ jobs:
             -D llvm=disabled -D shared-llvm=disabled -D xmlconfig=disabled
           meson compile -C build64/
 
-      # Package binaries into a tarball
-      - name: Package binaries as tarball
+      # Archive the built binaries
+      - name: Archive built binaries
         run: |
-          BUILD_PREFIX=${{ github.workspace }}/build
+          BUILD_PREFIX=~/Desktop
           MESA_PREFIX=${BUILD_PREFIX}/mesa-turnip-feature-a7xx-basic-support
           cd ${MESA_PREFIX}
-          tar -czf mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}.tar.gz build64/
+          tar -czf ${{ env.MESA_64 }}.tar.gz build64/
 
       # Upload the tarball as an artifact
       - name: Upload binaries as artifact
         uses: actions/upload-artifact@v4
         with:
           name: mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}
-          path: ${{ github.workspace }}/build/mesa-turnip-feature-a7xx-basic-support/mesa-turnip-binaries-${{ env.MESA_VER }}-${{ env.DATE }}.tar.gz
+          path: ~/Desktop/mesa-vulkan-kgsl_${{ env.MESA_VER }}-${{ env.DATE }}_arm64.tar.gz
           retention-days: 7
