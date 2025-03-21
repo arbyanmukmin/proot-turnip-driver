@@ -204,5 +204,5 @@ build_mesa "armhf" "arm-linux-gnueabihf"
 
 echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled for ARM64 and ARMHF successfully!${NC}"
 echo -e "${GREEN}Output files:${NC}"
-echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-arm64.tar.gz (for ARM64)"
-echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl-$MESA_VERSION-$BUILD_DATE-armhf.tar.gz (for ARMHF)"
+echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-arm64.deb (for ARM64)"
+echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-armhf.deb (for ARMHF)"
