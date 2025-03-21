@@ -1,63 +1,55 @@
-# Based of this reply from hansm629:
-# https://github.com/xDoge26/proot-setup/issues/26#issuecomment-1712404849
 name: Build Mesa with Turnip driver for ARM64 and ARMHF
 
 on:
-  # push:
-    # branches: [main]
-  # pull_request:
-    # branches: [main]
-  workflow_dispatch:
-    inputs:
-      mesa-version:
-        description: 'Mesa version to build (e.g., 24.0.2)'
-        required: false
-        default: '24.0.2'
+    workflow_dispatch:
+        inputs:
+            mesa-version:
+                description: 'Mesa version to build (e.g., 24.0.2)'
+                required: false
+                default: '24.0.2'
 
 env:
-  MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.0.2' }}
-  BUILD_DATE: ${{ steps.set-date.outputs.date }}
+    MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.0.2' }}
 
 jobs:
-  build-turnip:
-    runs-on: ubuntu-latest
+    build-turnip:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Repository
+                uses: actions/checkout@v4
 
-      # Set up the build environment
-      - name: Set up build environment
-        run: |
-          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
-          sudo apt-get update -y
-          # sudo apt-get upgrade -y
-          sudo apt-get install -y software-properties-common
-          sudo apt-get build-dep -y mesa
-          sudo apt-get install -y pkg-config make cmake \
-                                  g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
-                                  gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
-          sudo apt-get install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
-                                  libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev \
-                                  libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev \
-                                  libwayland-dev wayland-protocols libwayland-egl-backend-dev # libssl-dev
-          sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
+            - name: Set up build environment
+                run: |
+                    sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+                    sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+                    sudo apt-get update -y
+                    sudo apt-get upgrade -y
+                    sudo apt-get install -y software-properties-common ninja-build
+                    sudo apt-get build-dep -y mesa
+                    sudo apt-get install -y pkg-config make cmake \
+                                            g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
+                                            gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+                    sudo apt-get install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
+                                            libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev \
+                                            libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev \
+                                            libwayland-dev wayland-protocols libwayland-egl-backend-dev libssl-dev
+                    sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
-      - name: Build Mesa with Turnip
-        run: |
-          chmod +x build_turnip.sh
-          echo "Building Mesa version: $MESA_VERSION"
-          bash build_turnip.sh "$MESA_VERSION"
+            - name: Build Mesa with Turnip
+                run: |
+                    chmod +x build_turnip.sh
+                    echo "Building Mesa version: $MESA_VERSION"
+                    bash build_turnip.sh "$MESA_VERSION"
 
-      - name: Upload ARM64 Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-arm64
-          path: ~/mesa-cross-build/mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-arm64.tar.gz
+            - name: Upload ARM64 Artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
+                    path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-arm64.tar.gz
 
-      - name: Upload ARMHF Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-armhf
-          path: ~/mesa-cross-build/mesa-turnip-${{ env.MESA_VERSION }}-${{ env.BUILD_DATE }}-armhf.tar.gz
+            - name: Upload ARMHF Artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
+                    path: ~/mesa-cross-build/mesa-vulkan-kgsl-${{ env.MESA_VERSION }}-*-armhf.tar.gz
