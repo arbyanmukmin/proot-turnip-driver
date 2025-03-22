@@ -193,8 +193,11 @@ strip = 'aarch64-linux-gnu-strip'
 pkgconfig = 'pkg-config'
 
 [properties]
-pkg_config_libdir = '/usr/lib/aarch64-linux-gnu/pkgconfig'
-sys_root = '/usr/aarch64-linux-gnu'
+pkg_config_libdir = [
+    '/usr/lib/aarch64-linux-gnu/pkgconfig',
+    '/usr/share/pkgconfig',
+    '/usr/lib/pkgconfig'
+]
 
 [host_machine]
 system = 'linux'
@@ -219,8 +222,11 @@ strip = 'arm-linux-gnueabihf-strip'
 pkgconfig = 'pkg-config'
 
 [properties]
-pkg_config_libdir = '/usr/lib/arm-linux-gnueabihf/pkgconfig'
-sys_root = '/usr/arm-linux-gnueabihf'
+pkg_config_libdir = [
+    '/usr/lib/arm-linux-gnueabihf/pkgconfig',
+    '/usr/share/pkgconfig',
+    '/usr/lib/pkgconfig'
+]
 
 [host_machine]
 system = 'linux'
