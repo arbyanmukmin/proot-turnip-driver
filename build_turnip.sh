@@ -110,14 +110,13 @@ build_mesa() {
         echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
         exit 1
     }
-    
+
     if [ "$ARCH" = "arm64" ]; then
         LIBDIR="lib/aarch64-linux-gnu"
     else  # armhf
         LIBDIR="lib/arm-linux-gnueabihf"
     fi
 
-    rm -rf "$BUILD_DIR"  # Clean previous build
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
         -D c_link_args='-Wl,--no-as-needed' -D cpp_link_args='-Wl,--no-as-needed' \
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
@@ -192,22 +191,11 @@ ar = 'aarch64-linux-gnu-ar'
 strip = 'aarch64-linux-gnu-strip'
 pkgconfig = 'pkg-config'
 
-[properties]
-pkg_config_libdir = [
-    '/usr/lib/aarch64-linux-gnu/pkgconfig',
-    '/usr/share/pkgconfig',
-    '/usr/lib/pkgconfig'
-]
-
 [host_machine]
 system = 'linux'
 cpu_family = 'aarch64'
 cpu = 'aarch64'
 endian = 'little'
-
-[built-in options]
-c_args = ['-march=armv8-a']
-cpp_args = ['-march=armv8-a']
 EOF
 fi
 
@@ -221,22 +209,11 @@ ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
 pkgconfig = 'pkg-config'
 
-[properties]
-pkg_config_libdir = [
-    '/usr/lib/arm-linux-gnueabihf/pkgconfig',
-    '/usr/share/pkgconfig',
-    '/usr/lib/pkgconfig'
-]
-
 [host_machine]
 system = 'linux'
-cpu_family = 'arm'
-cpu = 'armv7-a'
+cpu_family = 'armhf'
+cpu = 'armv7l'
 endian = 'little'
-
-[built-in options]
-c_args = ['-march=armv7-a', '-mthumb', '-mfpu=neon-vfpv4', '-mfloat-abi=hard']
-cpp_args = ['-march=armv7-a', '-mthumb', '-mfpu=neon-vfpv4', '-mfloat-abi=hard']
 EOF
 fi
 
@@ -245,8 +222,8 @@ echo -e "${GREEN}Starting ARM64 build...${NC}"
 build_mesa "arm64" "aarch64-linux-gnu"
 
 # Build for ARMHF (armv7hf)
-echo -e "${GREEN}Starting ARMHF build...${NC}"
-build_mesa "armhf" "arm-linux-gnueabihf"
+# echo -e "${GREEN}Starting ARMHF build...${NC}"
+# build_mesa "armhf" "arm-linux-gnueabihf"
 
 # Clean up source (optional, commented out by default)
 # echo -e "${GREEN}Cleaning up source directory...${NC}"
@@ -255,4 +232,4 @@ build_mesa "armhf" "arm-linux-gnueabihf"
 echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled for ARM64 and ARMHF successfully!${NC}"
 echo -e "${GREEN}Output files:${NC}"
 echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-arm64.deb (for ARM64)"
-echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-armhf.deb (for ARMHF)"
+# echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-armhf.deb (for ARMHF)"
