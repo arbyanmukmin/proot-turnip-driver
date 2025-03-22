@@ -120,7 +120,7 @@ build_mesa() {
         LIBDIR="lib/arm-linux-gnueabihf"
     fi
 
-    meson setup "$BUILD_DIR" --prefix /usr --libdir "$LIBDIR" \
+    meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
         -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
         -D dri3=enabled -D buildtype=release -D glx=disabled \
