@@ -32,7 +32,7 @@ jobs:
               uses: cyberjunk/gha-ubuntu-cross@v5
               with:
                   arch: arm64
-            
+
             - name: Install Cross-Compile Support (ARMHF)
               uses: cyberjunk/gha-ubuntu-cross@v5
               with:
@@ -45,8 +45,8 @@ jobs:
                     sudo apt-get update -y
                     sudo apt-get install -y \
                         pkg-config make cmake ninja-build software-properties-common wget patch \
-                        gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu \
-                        gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf pkg-config-arm-linux-gnueabihf 
+                        gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config:arm64 \
+                        gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf pkg-config:armhf 
                     sudo apt-get build-dep -a arm64 mesa
                     sudo apt-get build-dep -a armhf mesa
                     sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
