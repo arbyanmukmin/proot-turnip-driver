@@ -67,7 +67,7 @@ if [ ! -d "$MESA_SRC_DIR" ]; then
 fi
 
 # Apply patches from /patches folder
-if [ "$USE_PATCHES" ]; then
+if [ "$USE_PATCHES" = "true" ]; then
     if [ -d "$PATCHES_DIR" ]; then
         echo -e "${GREEN}Applying patches from $PATCHES_DIR...${NC}"
         cd "$MESA_SRC_DIR" || {
