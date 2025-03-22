@@ -1,81 +1,83 @@
 name: Build Mesa with Turnip driver for ARM64 and ARMHF
 
 on:
-    # push:
-    #     branches: [main]
-    # pull_request:
-    #     branches: [main]
-    workflow_dispatch:
-        inputs:
-            mesa-version:
-                description: 'Mesa version to build (e.g., 24.1.0)'
-                required: false
-                default: '24.1.0'
-            use-patches:
-                description: 'Will be using paches from /patches folder'
-                required: false
-                default: true
+  # push:
+  #     branches: [main]
+  # pull_request:
+  #     branches: [main]
+  workflow_dispatch:
+    inputs:
+      mesa-version:
+        description: 'Mesa version to build (e.g., 24.1.0)'
+        required: false
+        default: '24.1.0'
+      use-patches:
+        description: 'Will be using paches from /patches folder'
+        required: false
+        default: true
 
 env:
-    MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.1.0' }}
-    USE_PATCHES: ${{ github.event.inputs.use-patches || 'false' }}
+  MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.1.0' }}
+  USE_PATCHES: ${{ github.event.inputs.use-patches || 'false' }}
 
 jobs:
-    build-turnip:
-        runs-on: ubuntu-24.04
+  build-turnip:
+    runs-on: ubuntu-24.04
 
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Install Cross-Compile Support (ARM64)
-              uses: cyberjunk/gha-ubuntu-cross@v5
-              with:
-                  arch: arm64
+      - name: Install Cross-Compile Support (ARM64)
+        uses: cyberjunk/gha-ubuntu-cross@v5
+        with:
+          arch: arm64
 
-            - name: Install Cross-Compile Support (ARMHF)
-              uses: cyberjunk/gha-ubuntu-cross@v5
-              with:
-                  arch: armhf
+      - name: Install Cross-Compile Support (ARMHF)
+        uses: cyberjunk/gha-ubuntu-cross@v5
+        with:
+          arch: armhf
 
-            - name: Set up build environment
-              run: |
-                    sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-                    sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
-                    sudo apt update
-                    sudo apt build-dep mesa
-                    sudo apt install -y pkg-config make cmake ninja-build \
-                                        gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-                                        gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
-                    sudo apt install -y pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
-                                        libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
-                                        libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
-                                        libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libwayland-dev:arm64 \
-                                        wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 libssl-dev:arm64 \
-                                        liblz4-dev:arm64 libzstd-dev:arm64 libcrypto++-dev:arm64 libxml2-dev:arm64 \
-                                        libxcb-sync-dev:arm64 libxcb-xfixes0-dev:arm64 libffi-dev:arm64 libunwind-dev:arm64
-                    sudo apt install -y pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
-                                        libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
-                                        libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
-                                        libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf \
-                                        wayland-protocols:armhf libwayland-egl-backend-dev:armhf libssl-dev:armhf \
-                                        liblz4-dev:armhf libzstd-dev:armhf libcrypto++-dev:armhf libxml2-dev:armhf \
-                                        libxcb-sync-dev:armhf libxcb-xfixes0-dev:armhf libffi-dev:armhf libunwind-dev:armhf
-                    sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
+      - name: Set up build environment
+        run: |
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+          sudo apt update
+          sudo apt build-dep mesa
+          sudo apt install -y pkg-config make cmake ninja-build \
+                    gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+                    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          sudo apt install -y pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
+                    libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
+                    libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
+                    libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libwayland-dev:arm64 \
+                    wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 libssl-dev:arm64 \
+                    liblz4-dev:arm64 libzstd-dev:arm64 libcrypto++-dev:arm64 libxml2-dev:arm64 \
+                    libxcb-sync-dev:arm64 libxcb-xfixes0-dev:arm64 libffi-dev:arm64 libunwind-dev:arm64 \
+                    x11proto-core-dev:arm64 libxau-dev:arm64 libxdmcp-dev:arm64 libxcb1-dev:arm64
+          sudo apt install -y pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
+                    libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
+                    libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
+                    libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf \
+                    wayland-protocols:armhf libwayland-egl-backend-dev:armhf libssl-dev:armhf \
+                    liblz4-dev:armhf libzstd-dev:armhf libcrypto++-dev:armhf libxml2-dev:armhf \
+                    libxcb-sync-dev:armhf libxcb-xfixes0-dev:armhf libffi-dev:armhf libunwind-dev:armhf \
+                    x11proto-core-dev:armhf libxau-dev:armhf libxdmcp-dev:armhf libxcb1-dev:armhf
+          sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
-            - name: Build Mesa with Turnip
-              run: |
-                    echo "Building Mesa version: $MESA_VERSION"
-                    bash build_turnip.sh "$MESA_VERSION"
+      - name: Build Mesa with Turnip
+        run: |
+          echo "Building Mesa version: $MESA_VERSION"
+          bash build_turnip.sh "$MESA_VERSION"
 
-            - name: Upload ARM64 Artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
-                  path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-arm64.*
+      - name: Upload ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
+          path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-arm64.*
 
-            - name: Upload ARMHF Artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
-                  path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-armhf.*
+      - name: Upload ARMHF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
+          path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-armhf.*
