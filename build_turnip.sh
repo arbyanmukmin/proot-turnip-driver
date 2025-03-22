@@ -193,7 +193,7 @@ strip = 'aarch64-linux-gnu-strip'
 pkgconfig = 'pkg-config'
 
 [properties]
-pkg_config_libdir = '/usr/aarch64-linux-gnu/lib/pkgconfig'
+pkg_config_libdir = '/usr/lib/aarch64-linux-gnu/pkgconfig'
 sys_root = '/usr/aarch64-linux-gnu'
 
 [host_machine]
@@ -219,8 +219,8 @@ strip = 'arm-linux-gnueabihf-strip'
 pkgconfig = 'pkg-config'
 
 [properties]
-pkg_config_libdir = '/usr/arm-linux-gnueabihf/lib/pkgconfig'  # ARMHF pkg-config path
-sys_root = '/usr/arm-linux-gnueabihf'  # Sysroot for armhf libraries
+pkg_config_libdir = '/usr/lib/arm-linux-gnueabihf/pkgconfig'
+sys_root = '/usr/arm-linux-gnueabihf'
 
 [host_machine]
 system = 'linux'
