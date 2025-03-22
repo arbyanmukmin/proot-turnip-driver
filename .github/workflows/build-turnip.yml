@@ -22,25 +22,33 @@ env:
 
 jobs:
     build-turnip:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
 
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
+
+            - name: Install Cross-Compile Support (ARM64)
+              uses: cyberjunk/gha-ubuntu-cross@v5
+              with:
+                  arch: arm64
+            
+            - name: Install Cross-Compile Support (ARMHF)
+              uses: cyberjunk/gha-ubuntu-cross@v5
+              with:
+                  arch: armhf
 
             - name: Set up build environment
               run: |
                     sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
                     sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
                     sudo apt-get update -y
-                    sudo apt-get build-dep -y mesa
-                    sudo apt-get install -y pkg-config make cmake \
-                                            g++-arm-linux-gnueabihf g++-aarch64-linux-gnu \
-                                            gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
-                    sudo apt-get install -y zlib1g-dev libexpat1-dev libdrm-dev libx11-dev libx11-xcb-dev \
-                                            libxext-dev libxdamage-dev libxcb-glx0-dev libxcb-dri2-0-dev libxcb-dri3-dev \
-                                            libxcb-shm0-dev libxcb-present-dev libxshmfence-dev libxxf86vm-dev libxrandr-dev \
-                                            libwayland-dev wayland-protocols libwayland-egl-backend-dev libssl-dev
+                    sudo apt-get install -y \
+                        pkg-config make cmake ninja-build software-properties-common wget patch \
+                        gcc-aarch64-linux-gnu g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu \
+                        gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf pkg-config-arm-linux-gnueabihf 
+                    sudo apt-get build-dep -a arm64 mesa
+                    sudo apt-get build-dep -a armhf mesa
                     sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
             - name: Build Mesa with Turnip
