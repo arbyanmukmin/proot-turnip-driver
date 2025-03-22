@@ -44,18 +44,23 @@ jobs:
                     sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
                     sudo apt update
                     sudo apt build-dep mesa
-                    sudo apt install -y zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
+                    sudo apt install -y pkg-config make cmake ninja-build \
+                                        gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+                                        gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+                    sudo apt install -y pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
                                         libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
                                         libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
                                         libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libwayland-dev:arm64 \
-                                        wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 libssl-dev:arm64 zlib1g-dev:arm64 \
-                                        liblz4-dev:arm64 libzstd-dev:arm64 libcrypto++-dev:arm64 libxml2-dev:arm64
-                    sudo apt install -y zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
+                                        wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 libssl-dev:arm64 \
+                                        liblz4-dev:arm64 libzstd-dev:arm64 libcrypto++-dev:arm64 libxml2-dev:arm64 \
+                                        libxcb-sync-dev:arm64 libxcb-xfixes0-dev:arm64 libffi-dev:arm64 libunwind-dev:arm64
+                    sudo apt install -y pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
                                         libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
                                         libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
                                         libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf \
-                                        wayland-protocols:armhf libwayland-egl-backend-dev:armhf libssl-dev:armhf zlib1g-dev:armhf \
-                                        liblz4-dev:armhf libzstd-dev:armhf libcrypto++-dev:armhf libxml2-dev:armhf
+                                        wayland-protocols:armhf libwayland-egl-backend-dev:armhf libssl-dev:armhf \
+                                        liblz4-dev:armhf libzstd-dev:armhf libcrypto++-dev:armhf libxml2-dev:armhf \
+                                        libxcb-sync-dev:armhf libxcb-xfixes0-dev:armhf libffi-dev:armhf libunwind-dev:armhf
                     sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
             - name: Build Mesa with Turnip
