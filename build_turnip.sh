@@ -13,7 +13,7 @@ RED='\033[0;31m'
 NC='\033[0m'  # No Color
 
 # Set environment variables
-MESA_VERSION="${1:-${MESA_VERSION:-24.0.2}}"
+MESA_VERSION="${1:-${MESA_VERSION:-24.1.0}}"
 BUILD_DATE=$(date +"%F" | sed 's/-//g')
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
