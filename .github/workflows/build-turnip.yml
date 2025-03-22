@@ -54,7 +54,7 @@ jobs:
                     wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 libssl-dev:arm64 \
                     liblz4-dev:arm64 libzstd-dev:arm64 libcrypto++-dev:arm64 libxml2-dev:arm64 \
                     libxcb-sync-dev:arm64 libxcb-xfixes0-dev:arm64 libffi-dev:arm64 libunwind-dev:arm64 \
-                    x11proto-core-dev:arm64 libxau-dev:arm64 libxdmcp-dev:arm64 libxcb1-dev:arm64
+                    x11proto-dev:arm64 libxau-dev:arm64 x11proto-xext-dev:arm64 libxdmcp-dev:arm64 libxcb1-dev:arm64
           sudo apt install -y zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
                     libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
                     libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
@@ -62,7 +62,7 @@ jobs:
                     wayland-protocols:armhf libwayland-egl-backend-dev:armhf libssl-dev:armhf \
                     liblz4-dev:armhf libzstd-dev:armhf libcrypto++-dev:armhf libxml2-dev:armhf \
                     libxcb-sync-dev:armhf libxcb-xfixes0-dev:armhf libffi-dev:armhf libunwind-dev:armhf \
-                    x11proto-core-dev:armhf libxau-dev:armhf libxdmcp-dev:armhf libxcb1-dev:armhf
+                    x11proto-dev:armhf libxau-dev:armhf x11proto-xext-dev:armhf libxdmcp-dev:armhf libxcb1-dev:armhf
           sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
