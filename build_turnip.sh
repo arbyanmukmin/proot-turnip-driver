@@ -92,7 +92,6 @@ else
     echo -e "${WHITE}USE_PATCHES is false, skipping patch application${NC}"
 fi
 
-# Function to build Mesa for a specific architecture
 build_mesa() {
     local ARCH=$1
     local TRIPLE=$2
@@ -101,7 +100,6 @@ build_mesa() {
     local INSTALL_DIR="$WORK_DIR/install-$ARCH"
     local OUTPUT_FILE="$OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-$ARCH.deb"
 
-    # Ensure cross-file exists
     if [ ! -f "$CROSS_FILE" ]; then
         echo -e "${RED}Error: Cross-compilation file $CROSS_FILE not found${NC}" >&2
         exit 1
@@ -113,14 +111,15 @@ build_mesa() {
         exit 1
     }
     
-    # Configure with appropriate libdir for architecture
     if [ "$ARCH" = "arm64" ]; then
         LIBDIR="lib/aarch64-linux-gnu"
     else  # armhf
         LIBDIR="lib/arm-linux-gnueabihf"
     fi
 
+    rm -rf "$BUILD_DIR"  # Clean previous build
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
+        -D c_link_args='-Wl,--no-as-needed' -D cpp_link_args='-Wl,--no-as-needed' \
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
         -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
         -D dri3=enabled -D buildtype=release -D glx=disabled \
@@ -193,11 +192,19 @@ ar = 'aarch64-linux-gnu-ar'
 strip = 'aarch64-linux-gnu-strip'
 pkgconfig = 'pkg-config'
 
+[properties]
+pkg_config_libdir = '/usr/aarch64-linux-gnu/lib/pkgconfig'
+sys_root = '/usr/aarch64-linux-gnu'
+
 [host_machine]
 system = 'linux'
-cpu_family = 'arm'
+cpu_family = 'aarch64'
 cpu = 'aarch64'
 endian = 'little'
+
+[built-in options]
+c_args = ['-march=armv8-a']
+cpp_args = ['-march=armv8-a']
 EOF
 fi
 
@@ -211,11 +218,19 @@ ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
 pkgconfig = 'pkg-config'
 
+[properties]
+pkg_config_libdir = '/usr/arm-linux-gnueabihf/lib/pkgconfig'  # ARMHF pkg-config path
+sys_root = '/usr/arm-linux-gnueabihf'  # Sysroot for armhf libraries
+
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
-cpu = 'armv7l'
+cpu = 'armv7-a'
 endian = 'little'
+
+[built-in options]
+c_args = ['-march=armv7-a', '-mthumb', '-mfpu=neon-vfpv4', '-mfloat-abi=hard']
+cpp_args = ['-march=armv7-a', '-mthumb', '-mfpu=neon-vfpv4', '-mfloat-abi=hard']
 EOF
 fi
 
