@@ -77,10 +77,9 @@ if [ "$USE_PATCHES" = "true" ]; then
         for patch in "$PATCHES_DIR"/*.patch; do
             if [ -f "$patch" ]; then
                 echo -e "${GREEN}Applying patch: $(basename "$patch")${NC}"
-                patch -p1 < "$patch" || {
-                    echo -e "${RED}Error: Failed to apply patch $patch${NC}" >&2
-                    exit 1
-                }
+                if ! patch -p1 < "$patch"; then
+                    echo -e "${WHITE}Warning: Failed to apply patch $(basename "$patch"), continuing...${NC}" >&2
+                fi
             else
                 echo -e "${WHITE}No .patch files found in $PATCHES_DIR${NC}"
                 break
