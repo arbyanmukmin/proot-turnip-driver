@@ -193,11 +193,19 @@ ar = 'aarch64-linux-gnu-ar'
 strip = 'aarch64-linux-gnu-strip'
 pkgconfig = 'pkg-config'
 
+[properties]
+pkg_config_libdir = '/usr/aarch64-linux-gnu/lib/pkgconfig'
+sys_root = '/usr/aarch64-linux-gnu'
+
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
 cpu = 'aarch64'
 endian = 'little'
+
+[built-in options]
+c_args = ['-march=armv8-a']
+cpp_args = ['-march=armv8-a']
 EOF
 fi
 
@@ -209,13 +217,21 @@ c = 'arm-linux-gnueabihf-gcc'
 cpp = 'arm-linux-gnueabihf-g++'
 ar = 'arm-linux-gnueabihf-ar'
 strip = 'arm-linux-gnueabihf-strip'
-pkgconfig = pkg-config'
+pkgconfig = 'pkg-config'
+
+[properties]
+pkg_config_libdir = '/usr/arm-linux-gnueabihf/lib/pkgconfig'
+sys_root = '/usr/arm-linux-gnueabihf'
 
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
 cpu = 'armv7l'
 endian = 'little'
+
+[built-in options]
+c_args = ['-march=armv7-a', '-mthumb', '-mfpu=neon-vfpv4', '-mfloat-abi=hard']
+cpp_args = ['-march=armv7-a', '-mthumb', '-mfpu=neon-vfpv4', '-mfloat-abi=hard']
 EOF
 fi
 
