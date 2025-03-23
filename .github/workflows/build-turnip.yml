@@ -22,39 +22,37 @@ env:
 
 jobs:
   build-turnip:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Cross-Compile Support (ARM64)
-        uses: cyberjunk/gha-ubuntu-cross@v5
-        with:
-          arch: arm64
-
-      - name: Install Cross-Compile Support (ARMHF)
-        uses: cyberjunk/gha-ubuntu-cross@v5
-        with:
-          arch: armhf
+      - name: Configure APT sources
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo dpkg --add-architecture armhf
+          export CODENAME=$(lsb_release -c -s)
+          echo "deb http://ports.ubuntu.com/ $CODENAME main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/cross-compile.list
+          echo "deb http://ports.ubuntu.com/ $CODENAME-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/cross-compile.list
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
+          sudo apt-get update
 
       - name: Set up build environment
         run: |
-          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-          sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
-          sudo apt update
-          sudo apt build-dep -a arm64 mesa 
-          sudo apt install make cmake git wget vulkan-tools mesa-utils g++-arm-linux-gnueabihf g++-aarch64-linux-gnu
-          sudo apt install -y zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf libx11-xcb-dev:armhf \
-                              libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf libxcb-dri2-0-dev:armhf \
-                              libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf libxshmfence-dev:armhf \
-                              libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf wayland-protocols:armhf \
-                              libwayland-egl-backend-dev:armhf
-          sudo apt install -y zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 libx11-xcb-dev:arm64 \
-                              libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 libxcb-dri2-0-dev:arm64 \
-                              libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 libxshmfence-dev:arm64 \
-                              libxxf86vm-dev:arm64 libxrandr-dev:arm64 libwayland-dev:arm64 wayland-protocols:arm64 \
-                              libwayland-egl-backend-dev:arm64
+          sudo apt-get build-dep mesa 
+          sudo apt-get install -y pkg-config make cmake g++-arm-linux-gnueabihf g++-aarch64-linux-gnu
+          sudo apt-get install -y zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 libx11-xcb-dev:arm64 \
+                                  libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 libxcb-dri2-0-dev:arm64 \
+                                  libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 libxshmfence-dev:arm64 \
+                                  libxxf86vm-dev:arm64 libxrandr-dev:arm64 libwayland-dev:arm64 wayland-protocols:arm64 \
+                                  libwayland-egl-backend-dev:arm64
+          sudo apt-get install -y zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf libx11-xcb-dev:armhf \
+                                  libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf libxcb-dri2-0-dev:armhf \
+                                  libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf libxshmfence-dev:armhf \
+                                  libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf wayland-protocols:armhf \
+                                  libwayland-egl-backend-dev:armhf
           cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
