@@ -33,6 +33,7 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources
           sudo apt update
+          sudo apt upgrade -y
           sudo apt build-dep -a arm64 mesa
 
       - name: Test Building script
