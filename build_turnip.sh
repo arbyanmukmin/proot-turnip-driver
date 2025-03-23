@@ -118,7 +118,6 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        -D c_link_args='-Wl,--no-as-needed' -D cpp_link_args='-Wl,--no-as-needed' \
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
         -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
         -D dri3=enabled -D buildtype=release -D glx=disabled \
