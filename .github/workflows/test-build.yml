@@ -30,8 +30,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt build-dep -a arm64 mesa 
+          sudo apt build-dep -a arm64 mesa 
 
       - name: Test Building script
         run: |
-          bash build_turnip.sh "$MESA_VERSION"
+          sudo bash build_turnip.sh "$MESA_VERSION"
