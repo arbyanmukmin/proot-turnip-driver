@@ -141,38 +141,50 @@ build_mesa() {
         echo -e "${RED}Error: Failed to create install directory $INSTALL_DIR${NC}" >&2
         exit 1
     }
+
     DESTDIR="$INSTALL_DIR" ninja -C "$BUILD_DIR" install || {
         echo -e "${RED}Error: Installation failed for $ARCH${NC}" >&2
         exit 1
     }
 
     echo -e "${GREEN}Packaging $ARCH build as .deb...${NC}"
-    # Create DEBIAN directory for package metadata
+    apt remove -y mesa-vulkan-drivers:${ARCH} || true
+    apt download mesa-vulkan-drivers:${ARCH} || {
+        echo -e "${RED}Error: Failed to download mesa-vulkan-drivers:${ARCH}${NC}" >&2
+        exit 1
+    }
+
     mkdir -p "$INSTALL_DIR/DEBIAN" || {
         echo -e "${RED}Error: Failed to create DEBIAN directory in $INSTALL_DIR${NC}" >&2
         exit 1
     }
 
-    # Write the control file
-    cat > "$INSTALL_DIR/DEBIAN/control" << EOF
-Package: mesa-vulkan-drivers
-Source: mesa
-Version: ${MESA_VERSION}-${BUILD_DATE}
-Architecture: ${ARCH}
-Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Depends: libvulkan1, python3:any, libc6 (>= 2.38), libdrm-amdgpu1 (>= 2.4.121), libdrm2 (>= 2.4.121), libelf1t64 (>= 0.142), libexpat1 (>= 2.0.1), libgcc-s1 (>= 4.2), libllvm19 (>= 1:19.1.0), libstdc++6 (>= 11), libwayland-client0 (>= 1.23.0), libx11-xcb1 (>= 2:1.8.7), libxcb-dri3-0 (>= 1.17.0), libxcb-present0 (>= 1.17.0), libxcb-randr0 (>= 1.13), libxcb-shm0, libxcb-sync1, libxcb-xfixes0, libxcb1 (>= 1.9.2), libxshmfence1, libzstd1 (>= 1.5.5), zlib1g (>= 1:1.2.3.3)
-Provides: vulkan-icd
-Section: libs
-Priority: optional
-Multi-Arch: same
-Homepage: https://mesa3d.org/
-Description: Mesa Vulkan graphics drivers
- Vulkan is a low-overhead 3D graphics and compute API. This package
- includes Vulkan drivers provided by the Mesa project.
-Original-Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
-EOF
+    DEB_FILE=$(ls mesa-vulkan-drivers_*_${ARCH}.deb)
+    dpkg-deb -e "$DEB_FILE" "$INSTALL_DIR/DEBIAN/" || {
+        echo -e "${RED}Error: Failed to extract metadata from $DEB_FILE${NC}" >&2
+        exit 1
+    }
 
-    # Build the .deb package
+    sed -ie "3s/.*/Version: ${MESA_VERSION}-${BUILD_DATE}/g" "$INSTALL_DIR/DEBIAN/control" || {
+        echo -e "${RED}Error: Failed to modify control file${NC}" >&2
+        exit 1
+    }
+
+    rm -f "$DEB_FILE" || {
+        echo -e "${RED}Error: Failed to remove $DEB_FILE${NC}" >&2
+        exit 1
+    }
+
+    rm -f "$INSTALL_DIR/DEBIAN/md5sums" "$INSTALL_DIR/DEBIAN/triggers" || {
+        echo -e "${RED}Error: Failed to remove md5sums or triggers${NC}" >&2
+        exit 1
+    }
+
+    rm -rf "$INSTALL_DIR/usr/share/drirc.d" || {
+        echo -e "${RED}Error: Failed to remove drirc.d directory${NC}" >&2
+        exit 1
+    }
+
     dpkg-deb --build --root-owner-group "$INSTALL_DIR" "$OUTPUT_FILE" || {
         echo -e "${RED}Error: Failed to create .deb package $OUTPUT_FILE${NC}" >&2
         exit 1
@@ -221,8 +233,8 @@ echo -e "${GREEN}Starting ARM64 build...${NC}"
 build_mesa "arm64" "aarch64-linux-gnu"
 
 # Build for ARMHF (armv7hf)
-# echo -e "${GREEN}Starting ARMHF build...${NC}"
-# build_mesa "armhf" "arm-linux-gnueabihf"
+echo -e "${GREEN}Starting ARMHF build...${NC}"
+build_mesa "armhf" "arm-linux-gnueabihf"
 
 # Clean up source (optional, commented out by default)
 # echo -e "${GREEN}Cleaning up source directory...${NC}"
@@ -231,4 +243,4 @@ build_mesa "arm64" "aarch64-linux-gnu"
 echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled for ARM64 and ARMHF successfully!${NC}"
 echo -e "${GREEN}Output files:${NC}"
 echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-arm64.deb (for ARM64)"
-# echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-armhf.deb (for ARMHF)"
+echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-armhf.deb (for ARMHF)"
