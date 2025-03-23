@@ -67,11 +67,12 @@ jobs:
                                   libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf libxshmfence-dev:armhf \
                                   libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf wayland-protocols:armhf \
                                   libwayland-egl-backend-dev:armhf
-          cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
+          sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
         run: |
           echo "Building Mesa version: $MESA_VERSION"
+          sudo chmod +x build_turnip.sh
           bash build_turnip.sh "$MESA_VERSION"
 
       - name: Upload ARM64 Artifact
