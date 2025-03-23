@@ -195,10 +195,6 @@ system = 'linux'
 cpu_family = 'aarch64'
 cpu = 'armv8-a'
 endian = 'little'
-
-[properties]
-sys_root = '/usr/aarch64-linux-gnu'
-pkg_config_libdir = '/usr/lib/aarch64-linux-gnu/pkgconfig'
 EOF
 fi
 
@@ -217,10 +213,6 @@ system = 'linux'
 cpu_family = 'arm'
 cpu = 'armv7-a'
 endian = 'little'
-
-[properties]
-sys_root = '/usr/arm-linux-gnueabihf'
-pkg_config_libdir = '/usr/lib/arm-linux-gnueabihf/pkgconfig'
 EOF
 fi
 
