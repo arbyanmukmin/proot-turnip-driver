@@ -124,8 +124,8 @@ build_mesa() {
         -D egl=disabled -D gles1=disabled -D gles2=disabled \
         -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
         -D b_lto=true -D b_ndebug=true -D cpp_rtti=false \
-        -D gbm=disabled -D llvm=enabled -D shared-llvm=enabled \
-        -D xmlconfig=disabled || {
+        -D gbm=disabled -D llvm=disabled -D shared-llvm=disabled \
+        -D xmlconfig=disabled -D tools=disabled || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
     }
