@@ -121,10 +121,10 @@ build_mesa() {
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
         -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
         -D dri3=enabled -D buildtype=release -D glx=disabled \
-        -D egl=enabled -D gles1=disabled -D gles2=disabled \
+        -D egl=disabled -D gles1=disabled -D gles2=disabled \
         -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
         -D b_lto=true -D b_ndebug=true -D cpp_rtti=false \
-        -D gbm=enabled -D llvm=enabled -D shared-llvm=enabled \
+        -D gbm=disabled -D llvm=enabled -D shared-llvm=enabled \
         -D xmlconfig=disabled || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
