@@ -125,13 +125,13 @@ build_mesa() {
         -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
         -D b_lto=true -D b_ndebug=true -D cpp_rtti=false \
         -D gbm=disabled -D llvm=disabled -D shared-llvm=disabled \
-        -D xmlconfig=disabled -D tools=disabled || {
+        -D xmlconfig=disabled || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
     }
 
     echo -e "${GREEN}Building Mesa for $ARCH...${NC}"
-    ninja -C "$BUILD_DIR" || {
+    meson compile -C "$BUILD_DIR" || {
         echo -e "${RED}Error: Compilation failed for $ARCH${NC}" >&2
         exit 1
     }
@@ -142,7 +142,7 @@ build_mesa() {
         exit 1
     }
 
-    DESTDIR="$INSTALL_DIR" ninja -C "$BUILD_DIR" install || {
+    meson install -C "$BUILD_DIR" --destdir ${INSTALL_DIR} || {
         echo -e "${RED}Error: Installation failed for $ARCH${NC}" >&2
         exit 1
     }
