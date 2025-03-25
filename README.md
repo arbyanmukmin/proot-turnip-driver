@@ -12,4 +12,8 @@ There is a [Mesa Turnip PPA](https://github.com/MastaG/mesa-turnip-ppa) from Mas
 - Random SIGSEGV (Segmentation Fault) while running `glmark2-x11`
 Except their build was stable on `vkmark` and `vkcube` tests, which not really surprising.
 
+Log updates:
+- Mesa 25.0.2 (26 March 2025)
+  My built driver seems has same issue similar to MastaG's driver but worse
+
 Expect more releases soon.
