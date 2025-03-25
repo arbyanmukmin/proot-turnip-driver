@@ -62,29 +62,27 @@ jobs:
                                   libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
                                   libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
                                   libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libwayland-dev:arm64 \
-                                  wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 libarchive-dev:arm64 libxml2-dev:arm64 \
-                                  liblua5.4-dev:arm64 \
+                                  wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 \
                                   pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
                                   libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
                                   libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
                                   libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libwayland-dev:armhf \
-                                  wayland-protocols:armhf libwayland-egl-backend-dev:armhf libarchive-dev:armhf libxml2-dev:armhf \
-                                  liblua5.4-dev:armhf
+                                  wayland-protocols:armhf libwayland-egl-backend-dev:armhf
           sudo cp /usr/include/libdrm/drm.h /usr/include/libdrm/drm_mode.h /usr/include/
 
       - name: Build Mesa with Turnip
         run: |
           echo "Building Mesa version: $MESA_VERSION"
-          sudo chmod +x build_turnip.sh
+          chmod +x build_turnip.sh
           bash build_turnip.sh "$MESA_VERSION"
 
-      - name: Upload ARM64 Artifact
+      - name: Upload arm64 Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
           path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-arm64.*
 
-      - name: Upload ARMHF Artifact
+      - name: Upload armhf Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
