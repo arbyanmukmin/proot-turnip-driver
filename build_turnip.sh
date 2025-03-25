@@ -13,7 +13,7 @@ RED='\033[0;31m'
 NC='\033[0m'  # No Color
 
 # Set environment variables
-MESA_VERSION="${1:-${MESA_VERSION:-24.1.0}}"
+MESA_VERSION="${1:-${MESA_VERSION:-24.3.4}}"
 BUILD_DATE=$(date +"%F" | sed 's/-//g')
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
@@ -127,11 +127,11 @@ build_mesa() {
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
         -D platforms=x11,wayland -D gallium-drivers=freedreno \
         -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
-        -D dri3=enabled -D buildtype=release -D glx=disabled \
-        -D egl=disabled -D gles1=disabled -D gles2=disabled \
-        -D gallium-xa=disabled -D opengl=false -D shared-glapi=false \
-        -D b_lto=true -D b_ndebug=true -D cpp_rtti=false \
-        -D gbm=disabled -D llvm=disabled -D shared-llvm=disabled \
+        -D buildtype=release -D glx=disabled -D egl=disabled \
+        -D gles1=disabled -D gles2=disabled -D gallium-xa=disabled \
+        -D opengl=false -D shared-glapi=disabled -D b_lto=true \
+        -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
+        -D llvm=disabled -D shared-llvm=disabled \
         -D xmlconfig=disabled || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
