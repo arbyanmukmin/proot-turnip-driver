@@ -8,16 +8,16 @@ on:
   workflow_dispatch:
     inputs:
       mesa-version:
-        description: 'Mesa version to build (e.g., 24.1.0)'
+        description: 'Mesa version to build (e.g., 24.3.4)'
         required: false
-        default: '24.1.0'
+        default: '24.3.4'
       use-patches:
         description: 'Will be using paches from /patches folder'
         required: false
         default: true
 
 env:
-  MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.1.0' }}
+  MESA_VERSION: ${{ github.event.inputs.mesa-version || '24.3.4' }}
   USE_PATCHES: ${{ github.event.inputs.use-patches || 'false' }}
 
 jobs:
