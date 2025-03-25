@@ -74,10 +74,17 @@ if [ "$USE_PATCHES" = "true" ]; then
             echo -e "${RED}Error: Failed to change to $MESA_SRC_DIR${NC}" >&2
             exit 1
         }
+        # Initialize git if not already a repo
+        if [ ! -d ".git" ]; then
+            git init || {
+                echo -e "${RED}Error: Failed to initialize git repository${NC}" >&2
+                exit 1
+            }
+        fi
         for patch in "$PATCHES_DIR"/*.patch; do
             if [ -f "$patch" ]; then
                 echo -e "${GREEN}Applying patch: $(basename "$patch")${NC}"
-                if ! patch -p1 < "$patch"; then
+                if ! git apply -v "$patch"; then
                     echo -e "${WHITE}Warning: Failed to apply patch $(basename "$patch"), continuing...${NC}" >&2
                 fi
             else
