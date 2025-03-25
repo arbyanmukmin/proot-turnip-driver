@@ -172,7 +172,7 @@ build_mesa() {
         exit 1
     }
 
-    sed -ie "3s/.*/Version: ${MESA_VERSION}-${BUILD_DATE}/g" "$INSTALL_DIR/DEBIAN/control" || {
+    sed -i "3s/.*/Version: ${MESA_VERSION}-${BUILD_DATE}/g" "$INSTALL_DIR/DEBIAN/control" || {
         echo -e "${RED}Error: Failed to modify control file${NC}" >&2
         exit 1
     }
