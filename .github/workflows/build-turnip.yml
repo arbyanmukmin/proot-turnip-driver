@@ -76,13 +76,13 @@ jobs:
           chmod +x build_turnip.sh
           bash build_turnip.sh "$MESA_VERSION"
 
-      - name: Upload arm64 Artifact
+      - name: Upload ARM64 Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
           path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-arm64.*
 
-      - name: Upload armhf Artifact
+      - name: Upload ARMHF Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
