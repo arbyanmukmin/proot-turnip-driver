@@ -99,36 +99,6 @@ else
     echo -e "${WHITE}USE_PATCHES is false, skipping patch application${NC}"
 fi
 
-# Configure LLVM
-# echo -e "${GREEN}Configuring LLVM for Meson...${NC}"
-# LLVM_CONFIG_PATH=""
-# for path in /usr/bin/llvm-config-* /usr/lib/llvm-*/bin/llvm-config; do
-#     if [ -x "$path" ] && [[ "$path" =~ llvm-config-19$ ]]; then
-#         LLVM_CONFIG_PATH="$path"
-#         break
-#     fi
-# done
-# # If 19 not found, take the first executable as fallback
-# if [ -z "$LLVM_CONFIG_PATH" ]; then
-#     for path in /usr/bin/llvm-config-* /usr/lib/llvm-*/bin/llvm-config; do
-#         if [ -x "$path" ]; then
-#             LLVM_CONFIG_PATH="$path"
-#             break
-#         fi
-#     done
-# fi
-# if [ -z "$LLVM_CONFIG_PATH" ]; then
-#     echo -e "${RED}Error: No llvm-config found in common paths.${NC}" >&2
-#     exit 1
-# fi
-# echo -e "${GREEN}Found llvm-config at: $LLVM_CONFIG_PATH${NC}"
-# export PATH="$PATH:$(dirname "$LLVM_CONFIG_PATH")"
-# cat > "$WORK_DIR/llvm-config.ini" << EOF
-# [binaries]
-# llvm-config = '$LLVM_CONFIG_PATH'
-# EOF
-# echo -e "${GREEN}Created llvm-config.ini with $LLVM_CONFIG_PATH${NC}"
-
 build_mesa() {
     local ARCH=$1
     local TRIPLE=$2
@@ -155,8 +125,8 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        -D platforms=x11,wayland -D gallium-drivers=llvmpipe,zink,freedreno \
-        -D vulkan-drivers=swrast,freedreno -D freedreno-kmds=msm,kgsl \
+        -D platforms=x11,wayland -D gallium-drivers=zink,freedreno \
+        -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
         -D buildtype=release -D glx=dri -D egl=disabled \
         -D gles1=disabled -D gles2=disabled -D gallium-xa=disabled \
         -D opengl=true -D shared-glapi=enabled -D b_lto=true \
