@@ -30,6 +30,22 @@ MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION-src"
 OUTPUT_DIR="${HOME}/mesa-build"
 PATCHES_DIR="${GITHUB_WORKSPACE:-$(pwd)}/patches"
 
+# Configure LLVM
+echo -e "${GREEN}Configuring LLVM for Meson...${NC}"
+LLVM_CONFIG_PATH=$(find /usr -name "llvm-config-19" 2>/dev/null | head -n 1)
+if [ -z "$LLVM_CONFIG_PATH" ]; then
+    echo -e "${RED}Error: llvm-config-19 not found. Ensure llvm-19-tools is installed.${NC}" >&2
+    exit 1
+fi
+echo -e "${GREEN}Found llvm-config-19 at: $LLVM_CONFIG_PATH${NC}"
+export PATH="$PATH:$(dirname "$LLVM_CONFIG_PATH")"
+cat > "$WORK_DIR/llvm-config.ini" << EOF
+[binaries]
+llvm-config = '$LLVM_CONFIG_PATH'
+EOF
+echo -e "${GREEN}Created llvm-config.ini with $LLVM_CONFIG_PATH${NC}"
+MESON_ARGS="$MESON_ARGS --native-file $WORK_DIR/llvm-config.ini"
+
 # Ensure working and output directories exist
 mkdir -p "$WORK_DIR" || {
     echo -e "${RED}Error: Failed to create working directory $WORK_DIR${NC}" >&2
@@ -125,6 +141,7 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
+        $MESON_ARGS \
         -D platforms=x11,wayland -D gallium-drivers=llvmpipe,zink,freedreno \
         -D vulkan-drivers=swrast,freedreno -D freedreno-kmds=msm,kgsl \
         -D buildtype=release -D glx=dri -D egl=disabled \
