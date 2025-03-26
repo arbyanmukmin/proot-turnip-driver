@@ -101,6 +101,7 @@ fi
 
 # Configure LLVM
 echo -e "${GREEN}Configuring LLVM for Meson...${NC}"
+llvm-config --version
 LLVM_CONFIG_PATH=""
 for path in /usr/bin/llvm-config-* /usr/lib/llvm-*/bin/llvm-config; do
     if [ -x "$path" ] && [[ "$path" =~ llvm-config-19$ ]]; then
