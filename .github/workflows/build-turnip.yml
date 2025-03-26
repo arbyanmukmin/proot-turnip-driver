@@ -56,7 +56,7 @@ jobs:
       - name: Set up build environment
         run: |
           sudo apt-get build-dep mesa 
-          sudo apt-get install -y make cmake llvm-19-dev \
+          sudo apt-get install -y make cmake llvm-19-tools llvm-19-dev \
                                   g++-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf
           sudo apt-get install -y pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
                                   libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
