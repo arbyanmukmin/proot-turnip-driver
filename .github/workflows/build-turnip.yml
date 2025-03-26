@@ -12,7 +12,7 @@ on:
         required: false
         default: '24.3.4'
       use-patches:
-        description: 'Will be using paches from /patches folder'
+        description: 'Apply patches from /patches folder'
         required: false
         default: true
 
