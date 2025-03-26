@@ -128,7 +128,6 @@ cat > "$WORK_DIR/llvm-config.ini" << EOF
 llvm-config = '$LLVM_CONFIG_PATH'
 EOF
 echo -e "${GREEN}Created llvm-config.ini with $LLVM_CONFIG_PATH${NC}"
-MESON_ARGS="$MESON_ARGS --native-file $WORK_DIR/llvm-config.ini"
 
 build_mesa() {
     local ARCH=$1
@@ -156,7 +155,7 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        $MESON_ARGS \
+        --native-file $WORK_DIR/llvm-config.ini \
         -D platforms=x11,wayland -D gallium-drivers=llvmpipe,zink,freedreno \
         -D vulkan-drivers=swrast,freedreno -D freedreno-kmds=msm,kgsl \
         -D buildtype=release -D glx=dri -D egl=disabled \
