@@ -155,7 +155,6 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        --native-file $WORK_DIR/llvm-config.ini \
         -D platforms=x11,wayland -D gallium-drivers=llvmpipe,zink,freedreno \
         -D vulkan-drivers=swrast,freedreno -D freedreno-kmds=msm,kgsl \
         -D buildtype=release -D glx=dri -D egl=disabled \
