@@ -129,7 +129,7 @@ build_mesa() {
         -D vulkan-drivers=swrast,freedreno -D freedreno-kmds=msm,kgsl \
         -D buildtype=release -D glx=dri -D egl=disabled \
         -D gles1=disabled -D gles2=disabled -D gallium-xa=disabled \
-        -D opengl=true -D shared-glapi=disabled -D b_lto=true \
+        -D opengl=true -D shared-glapi=enabled -D b_lto=true \
         -D b_ndebug=true -D cpp_rtti=false -D gbm=enabled \
         -D llvm=enabled -D shared-llvm=enabled \
         -D xmlconfig=disabled || {
