@@ -91,6 +91,7 @@ if [ "$USE_PATCHES" = "true" ]; then
 else
     echo -e "${WHITE}USE_PATCHES is false, skipping patch application${NC}"
 fi
+
 build_mesa() {
     local ARCH=$1
     local TRIPLE=$2
