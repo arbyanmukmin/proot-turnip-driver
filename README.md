@@ -12,6 +12,13 @@ There is a [Mesa Turnip PPA](https://github.com/MastaG/mesa-turnip-ppa) from Mas
 - Random SIGSEGV (Segmentation Fault) while running `glmark2-x11`
 Except their build was stable on `vkmark` and `vkcube` tests, which not really surprising.
 
+My setup being:
+- Termux nightly build `termux-app_v0.118.0+a988383`
+- [Proot](https://github.com/playbyan1453/ubuntu-termux) setup by my script using ubuntu oracular
+- Download my last build on GitHub actions
+- Install the `.deb` file inside the zip on proot
+- Run `vkmark`
+
 Log updates:
 - Mesa 25.0.2 (26 March 2025)
   My built driver seems has same issue similar to MastaG's driver but worse
