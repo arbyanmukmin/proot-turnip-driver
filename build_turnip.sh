@@ -18,12 +18,12 @@ BUILD_DATE=$(date +"%F" | sed 's/-//g')
 echo -e "${GREEN}Starting Mesa cross-compilation for ARM64 and ARMHF (version $MESA_VERSION)...${NC}"
 
 # https://gitlab.freedesktop.org/Danil/mesa/-/archive/review/a750-changes/mesa-review-a750-changes.tar.gz
-MESA_TARBALL="mesa-review-a750-changes.tar.gz"
-MESA_URL="https://gitlab.freedesktop.org/Danil/mesa/-/archive/review/a750-changes/$MESA_TARBALL"
+# MESA_TARBALL="mesa-review-a750-changes.tar.gz"
+# MESA_URL="https://gitlab.freedesktop.org/Danil/mesa/-/archive/review/a750-changes/$MESA_TARBALL"
 
 # Set working directory and Mesa tarball details
-# MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
-# MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
+MESA_TARBALL="mesa-mesa-$MESA_VERSION.tar.gz"
+MESA_URL="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$MESA_VERSION/$MESA_TARBALL"
 
 WORK_DIR="${HOME}/mesa-$MESA_VERSION"
 MESA_SRC_DIR="$WORK_DIR/mesa-$MESA_VERSION-src"
@@ -125,7 +125,7 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        -D gallium-drivers=zink,freedreno -D vulkan-drivers=freedreno \
+        -D gallium-drivers=freedreno -D vulkan-drivers=freedreno \
         -D freedreno-kmds=msm,kgsl -D buildtype=release -D glx=disabled \
         -D egl=disabled -D gles1=disabled -D gles2=disabled -D dri3=enabled \
         -D gallium-xa=disabled -D opengl=false -D shared-glapi=disabled \
