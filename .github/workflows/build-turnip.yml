@@ -93,5 +93,4 @@ jobs:
         with:
           name: mesa-builds
           path: |
-            ~/mesa-${{ github.event.inputs.mesa_version }}/build-arm64
-            ~/mesa-${{ github.event.inputs.mesa_version }}/build-armhf
+            ~/mesa-*/build-*
