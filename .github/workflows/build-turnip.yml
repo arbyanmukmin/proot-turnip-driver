@@ -88,8 +88,10 @@ jobs:
           name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
           path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-armhf.deb
 
-      - name: Upload raw build directory
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
-          path: ~/mesa-*/build-*/
+          name: mesa-builds
+          path: |
+            ~/mesa-${{ github.event.inputs.mesa_version }}/build-arm64
+            ~/mesa-${{ github.event.inputs.mesa_version }}/build-armhf
