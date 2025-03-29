@@ -204,7 +204,7 @@ pkgconfig = 'aarch64-linux-gnu-pkg-config'
 [host_machine]
 system = 'linux'
 cpu_family = 'aarch64'
-cpu = 'armv8-a'
+cpu = 'aarch64'
 endian = 'little'
 EOF
 fi
@@ -222,7 +222,7 @@ pkgconfig = 'arm-linux-gnueabihf-pkg-config'
 [host_machine]
 system = 'linux'
 cpu_family = 'arm'
-cpu = 'armv7-a'
+cpu = 'arm'
 endian = 'little'
 EOF
 fi
