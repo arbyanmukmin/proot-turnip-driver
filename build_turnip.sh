@@ -118,7 +118,7 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        -D gallium-drivers=freedreno -D vulkan-drivers=freedreno \
+        -D platforms=x11,wayland -D gallium-drivers=freedreno -D vulkan-drivers=freedreno \
         -D freedreno-kmds=msm,kgsl -D buildtype=release -D glx=disabled \
         -D egl=disabled -D gles1=disabled -D gles2=disabled \
         -D gallium-xa=disabled -D opengl=false -D shared-glapi=disabled \
