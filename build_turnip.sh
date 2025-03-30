@@ -184,6 +184,10 @@ build_mesa() {
         exit 1
     }
 
+    find "$INSTALL_DIR/usr/lib/aarch64-linux-gnu" -type f -not -name "libvulkan_freedreno.so" -not -name "libGL.so*" -delete
+    find "$INSTALL_DIR/usr/share" -type f -not -name "freedreno_icd.aarch64.json" -delete
+    find "$INSTALL_DIR/usr" -type d -empty -delete
+
     dpkg-deb --build --root-owner-group "$INSTALL_DIR" "$OUTPUT_FILE" || {
         echo -e "${RED}Error: Failed to create .deb package $OUTPUT_FILE${NC}" >&2
         exit 1
