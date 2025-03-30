@@ -121,7 +121,7 @@ build_mesa() {
         -D platforms=x11,wayland -D gallium-drivers=freedreno -D vulkan-drivers=freedreno \
         -D freedreno-kmds=msm,kgsl -D buildtype=release -D glx=dri \
         -D egl=disabled -D gles1=disabled -D gles2=disabled \
-        -D gallium-xa=disabled -D opengl=false -D shared-glapi=disabled \
+        -D gallium-xa=disabled -D opengl=true -D shared-glapi=enabled \
         -D b_lto=true -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
         -D llvm=disabled -D shared-llvm=disabled \
         -D xmlconfig=disabled || {
