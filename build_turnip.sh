@@ -184,7 +184,7 @@ build_mesa() {
         exit 1
     }
 
-    find "$INSTALL_DIR/usr/lib/aarch64-linux-gnu" -type f -not -name "libvulkan_freedreno.so" -not -name "libGL.so*" -delete
+    find "$INSTALL_DIR/usr/lib/aarch64-linux-gnu" -type f -not -name "libvulkan_freedreno.so" -delete
     find "$INSTALL_DIR/usr/share" -type f -not -name "freedreno_icd.aarch64.json" -delete
     find "$INSTALL_DIR/usr" -type d -empty -delete
 
