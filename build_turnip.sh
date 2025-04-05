@@ -64,6 +64,7 @@ if [ ! -d "$MESA_SRC_DIR" ]; then
         echo -e "${RED}Error: Failed to extract $MESA_TARBALL into $MESA_SRC_DIR${NC}" >&2
         exit 1
     }
+    rm -rf $MESA_SRC_DIR/subprojects
 fi
 
 # Apply patches from /patches folder
@@ -122,7 +123,7 @@ build_mesa() {
         -D cpp_rtti=false -D gbm=enabled -D opengl=true -D egl=enabled \
         -D egl-native-platform=x11 -D gles1=disabled -D gles2=enabled \
         -D glx=dri -D llvm=disabled -D shared-llvm=disabled \
-        -D platforms=x11 -D glvnd=enabled \
+        -D platforms=x11 -D glvnd=enabled -D buildtype=release \
         -D xmlconfig=disabled || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
