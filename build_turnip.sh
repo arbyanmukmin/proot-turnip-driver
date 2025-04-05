@@ -184,8 +184,8 @@ build_mesa() {
     }
 
     find "$INSTALL_DIR/usr" -maxdepth 1 -type d -not -name "lib" -not -name "share" -not -name "usr" -exec rm -rf {} \;
-    find "$INSTALL_DIR/usr/$LIBDIR" -type f -not -name "libvulkan_freedreno.so" -delete
-    find "$INSTALL_DIR/usr/share" -type f -not -name "freedreno_icd.aarch64.json" -delete
+    find "$INSTALL_DIR/usr/$LIBDIR" -type f -o -type l -not -name "libvulkan_freedreno.so" -delete
+    find "$INSTALL_DIR/usr/share" -type f -o -type l -not -name "freedreno_icd.aarch64.json" -delete
     find "$INSTALL_DIR/usr" -type d -empty -delete
 
     dpkg-deb --build --root-owner-group "$INSTALL_DIR" "$OUTPUT_FILE" || {
