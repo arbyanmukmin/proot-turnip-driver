@@ -9,7 +9,7 @@ I may have no more interest debugging these since I do not have knowledge of deb
 
 Current Mesa build script flags only supports from 24.3.x to 25.x.x
 
-There is a [Mesa Turnip PPA](https://github.com/MastaG/mesa-turnip-ppa) from MastaG but not really stable for my Redmi Note 9 Pro which uses (Snapdragon 720G, Adreno 618), their built packages issue is currently:
+There is a [Mesa Turnip PPA](https://github.com/MastaG/mesa-turnip-ppa) from MastaG tested on Redmi Note 9 Pro which uses (Snapdragon 720G, Adreno 618), their built packages issue is currently:
 - Stutters the whole system
 - Presistent SIGSEGV (Segmentation Fault) while running `glmark2-x11`
 Except their build was stable on `vkmark` and `vkcube` tests, which not really surprising.
