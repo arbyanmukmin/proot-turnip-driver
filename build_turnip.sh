@@ -120,7 +120,7 @@ build_mesa() {
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
         -Dbuildtype=release \
-        -Dplatforms=x11,wayland -Dgallium-drivers= \
+        -Dplatforms=x11 -Dgallium-drivers= \
         -Dvulkan-drivers=freedreno -Dfreedreno-kmds=kgsl \
         -Degl=disabled \
         -Db_lto=true -Db_lto_mode=thin \
