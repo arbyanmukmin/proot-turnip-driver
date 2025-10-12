@@ -119,11 +119,12 @@ build_mesa() {
     fi
 
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
-        -D platforms=x11,wayland -D gallium-drivers=zink -D vulkan-drivers=freedreno -D freedreno-kmds=msm,kgsl \
-        -D buildtype=release -D glx=dri -D egl=disabled -D gles1=disabled -D gles2=disabled -D gallium-xa=disabled \
-        -D opengl=true -D shared-glapi=true -D b_lto=true -D b_ndebug=true -D cpp_rtti=false -D gbm=disabled \
-        -D llvm=disabled -D shared-llvm=disabled \
-        -D xmlconfig=disabled || {
+        -Dbuildtype=release \
+        -Dplatforms=x11,wayland -Dgallium-drivers= \
+        -Dvulkan-drivers=freedreno -Dfreedreno-kmds=kgsl \
+        -Degl=disabled \
+        -Db_lto=true -Db_lto_mode=thin \
+        -Dstrip=true || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
         exit 1
     }
