@@ -122,7 +122,7 @@ build_mesa() {
         -Dbuildtype=release \
         -Dplatforms=x11 -Dgallium-drivers= \
         -Dvulkan-drivers=freedreno -Dfreedreno-kmds=kgsl \
-        -Degl=disabled \
+        -Degl=disabled -Dglx=dri \
         -Db_lto=true -Db_lto_mode=thin \
         -Dstrip=true || {
         echo -e "${RED}Error: Meson setup failed for $ARCH${NC}" >&2
