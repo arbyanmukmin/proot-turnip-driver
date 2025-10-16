@@ -47,6 +47,12 @@ jobs:
           EOF
           sudo apt-get update
 
+      - name: Cache APT packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/build-turnip.yml') }}
+
       - name: Set up build environment
         run: |
           sudo apt-get install -y meson-1.5 python3-pip flex bison python3-mako glslang-tools vulkan-tools python-is-python3 \
