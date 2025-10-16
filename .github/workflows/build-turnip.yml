@@ -32,6 +32,19 @@ jobs:
         run: |
           sudo dpkg --add-architecture arm64
           sudo dpkg --add-architecture armhf
+          CODENAME=$(lsb_release -c -s)
+          sudo rm -f /etc/apt/sources.list
+          sudo rm -rf /etc/apt/sources.list.d/*
+          cat << EOF | sudo tee /etc/apt/sources.list
+          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME main restricted universe multiverse
+          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-updates main restricted universe multiverse
+          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-security main restricted universe multiverse
+          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-backports main restricted universe multiverse
+          EOF
+          cat << EOF | sudo tee /etc/apt/sources.list.d/cross-compile.list
+          deb [arch=arm64,armhf] http://ports.ubuntu.com/ $CODENAME main restricted universe multiverse
+          deb [arch=arm64,armhf] http://ports.ubuntu.com/ $CODENAME-updates main restricted universe multiverse
+          EOF
           sudo apt-get update
 
       - name: Set up build environment
