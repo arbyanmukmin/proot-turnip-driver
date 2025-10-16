@@ -15,12 +15,15 @@ There is a [Mesa Turnip PPA](https://github.com/MastaG/mesa-turnip-ppa) from Mas
 Except their build was stable on `vkmark` and `vkcube` tests, which not really surprising.
 
 My setup being:
-- Termux nightly build `termux-app_v0.118.0+a988383`
+- Termux nightly build `termux-app_v0.118.0+84a4318`
 - [Proot](https://github.com/playbyan1453/ubuntu-termux) setup by my script using ubuntu oracular
-- Download my last build on GitHub actions
+- Download my latest build on GitHub actions
+- Extract the `.deb` then copy it to your workdir
 - Install the `.deb` file inside the zip on proot
 - Run `vkmark`
 
 Log updates:
 - Mesa 25.0.2 (26 March 2025)
   My built driver seems has same issue similar to MastaG's driver.
+- Mesa 25.2.5 (16 October 2025)
+  I can confirm that this latest iteration works fine. (TODO: Update README.md)
