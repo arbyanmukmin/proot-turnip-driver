@@ -33,38 +33,26 @@ jobs:
           sudo dpkg --add-architecture arm64
           sudo dpkg --add-architecture armhf
           CODENAME=$(lsb_release -c -s)
-          sudo rm -f /etc/apt/sources.list
           sudo rm -rf /etc/apt/sources.list.d/*
-          cat << EOF | sudo tee /etc/apt/sources.list
-          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME main restricted universe multiverse
-          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-updates main restricted universe multiverse
-          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-security main restricted universe multiverse
-          deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-backports main restricted universe multiverse
-          EOF
           cat << EOF | sudo tee /etc/apt/sources.list.d/cross-compile.list
           deb [arch=arm64,armhf] http://ports.ubuntu.com/ $CODENAME main restricted universe multiverse
           deb [arch=arm64,armhf] http://ports.ubuntu.com/ $CODENAME-updates main restricted universe multiverse
           EOF
           sudo apt-get update
 
-      - name: Cache APT packages
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/build-turnip.yml') }}
-
       - name: Set up build environment
         run: |
-          sudo apt-get install -y meson-1.5 python3-pip flex bison python3-mako glslang-tools vulkan-tools python-is-python3 \
-                                  g++-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf \
-                                  pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
-                                  libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
-                                  libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
-                                  libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libglvnd-dev:arm64 \
-                                  pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
-                                  libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
-                                  libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
-                                  libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libglvnd-dev:armhf
+          sudo apt-get install -y --no-install-recommends \
+              meson-1.5 python3-pip flex bison python3-mako glslang-tools vulkan-tools python-is-python3 \
+              g++-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf \
+              pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
+              libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
+              libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
+              libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libglvnd-dev:arm64 \
+              pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
+              libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
+              libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
+              libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libglvnd-dev:armhf
 
       - name: Build Mesa with Turnip
         run: |
