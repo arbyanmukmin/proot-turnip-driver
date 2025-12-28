@@ -32,7 +32,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture arm64
           sudo dpkg --add-architecture armhf
-          CODENAME=$(lsb_release -c -s)
+          CODENAME=plucky
           sudo rm -f /etc/apt/sources.list
           sudo rm -rf /etc/apt/sources.list.d/*
           cat << EOF | sudo tee /etc/apt/sources.list
@@ -89,5 +89,6 @@ jobs:
           path: |
             ~/mesa-*/build-*
             ~/mesa-*/install-*
+
 
 
