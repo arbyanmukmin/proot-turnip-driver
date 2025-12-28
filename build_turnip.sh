@@ -121,7 +121,7 @@ build_mesa() {
     meson setup "$BUILD_DIR" --cross-file "$CROSS_FILE" --prefix /usr --libdir "$LIBDIR" \
         -Dplatforms=x11,wayland -Dgallium-drivers=freedreno \
         -Dvulkan-drivers=freedreno -Dfreedreno-kmds=msm,kgsl \
-        -Dglx=disabled -Degl=disabled -Dgles1=false -Dgles2=false \
+        -Dglx=disabled -Degl=disabled -Dgles1=disabled -Dgles2=disabled \
         -Dopengl=false -Dshared-glapi=false -Dgbm=disabled \
         -Dllvm=disabled -Dshared-llvm=disabled -Dxmlconfig=disabled \
         -Db_lto=true -Db_lto_mode=thin -Dcpp_rtti=false -Dstrip=true \
