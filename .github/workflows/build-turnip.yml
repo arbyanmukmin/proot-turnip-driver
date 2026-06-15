@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.3
 
       - name: Configure APT sources
         run: |
@@ -54,7 +54,7 @@ jobs:
       # Reuse downloaded .deb files across runs. Key on workflow file contents so
       # it invalidates automatically when the package list changes.
       - name: Cache APT packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.5
         with:
           path: /var/cache/apt/archives
           key: apt-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build-turnip.yml') }}
@@ -63,7 +63,7 @@ jobs:
       # Reuse the Mesa tarball across both jobs and across re-runs of the same version.
       # Both matrix jobs share this key since it is arch-independent source.
       - name: Cache Mesa source tarball
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.5
         with:
           path: ~/mesa-${{ env.MESA_VERSION }}/mesa-mesa-${{ env.MESA_VERSION }}.tar.gz
           key: mesa-tarball-${{ env.MESA_VERSION }}
@@ -72,7 +72,7 @@ jobs:
       # First run primes the cache; subsequent runs on the same Mesa version
       # skip the bulk of compilation entirely.
       - name: Cache ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.5
         with:
           path: ~/.ccache
           # Save a new entry each run so the cache grows incrementally.
@@ -126,7 +126,7 @@ jobs:
         run: ccache --show-stats
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: mesa-turnip-${{ env.MESA_VERSION }}-${{ matrix.arch }}
           path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-${{ matrix.arch }}.deb
