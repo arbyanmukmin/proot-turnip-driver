@@ -1,10 +1,6 @@
 name: Build Mesa with Turnip driver for ARM64 and ARMHF
 
 on:
-  # push:
-  #     branches: [main]
-  # pull_request:
-  #     branches: [main]
   workflow_dispatch:
     inputs:
       mesa-version:
@@ -22,6 +18,15 @@ env:
 
 jobs:
   build-turnip:
+    # ARM64 and ARMHF build in parallel — cuts wall time roughly in half.
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            triple: aarch64-linux-gnu
+          - arch: armhf
+            triple: arm-linux-gnueabihf
+
     runs-on: ubuntu-latest
 
     steps:
@@ -30,8 +35,7 @@ jobs:
 
       - name: Configure APT sources
         run: |
-          sudo dpkg --add-architecture arm64
-          sudo dpkg --add-architecture armhf
+          sudo dpkg --add-architecture ${{ matrix.arch }}
           CODENAME=plucky
           sudo rm -f /etc/apt/sources.list
           sudo rm -rf /etc/apt/sources.list.d/*
@@ -42,54 +46,87 @@ jobs:
           deb [arch=amd64] http://archive.ubuntu.com/ubuntu $CODENAME-backports main restricted universe multiverse
           EOF
           cat << EOF | sudo tee /etc/apt/sources.list.d/cross-compile.list
-          deb [arch=arm64,armhf] http://ports.ubuntu.com/ $CODENAME main restricted universe multiverse
-          deb [arch=arm64,armhf] http://ports.ubuntu.com/ $CODENAME-updates main restricted universe multiverse
+          deb [arch=${{ matrix.arch }}] http://ports.ubuntu.com/ $CODENAME main restricted universe multiverse
+          deb [arch=${{ matrix.arch }}] http://ports.ubuntu.com/ $CODENAME-updates main restricted universe multiverse
           EOF
-          sudo apt update
+          sudo apt-get update -q
 
-      - name: Set up build environment
+      # Reuse downloaded .deb files across runs. Key on workflow file contents so
+      # it invalidates automatically when the package list changes.
+      - name: Cache APT packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build-turnip.yml') }}
+          restore-keys: apt-${{ matrix.arch }}-
+
+      # Reuse the Mesa tarball across both jobs and across re-runs of the same version.
+      # Both matrix jobs share this key since it is arch-independent source.
+      - name: Cache Mesa source tarball
+        uses: actions/cache@v4
+        with:
+          path: ~/mesa-${{ env.MESA_VERSION }}/mesa-mesa-${{ env.MESA_VERSION }}.tar.gz
+          key: mesa-tarball-${{ env.MESA_VERSION }}
+
+      # ccache stores compiled object files keyed on source + flags.
+      # First run primes the cache; subsequent runs on the same Mesa version
+      # skip the bulk of compilation entirely.
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          # Save a new entry each run so the cache grows incrementally.
+          # Restore from the most recent run for this arch+version pair.
+          key: ccache-${{ matrix.arch }}-${{ env.MESA_VERSION }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-${{ matrix.arch }}-${{ env.MESA_VERSION }}-
+            ccache-${{ matrix.arch }}-
+
+      - name: Install build tools and cross-compile dependencies
         run: |
-          sudo apt update
-          sudo apt install -y --no-install-recommends \
-              meson python3-pip flex bison python3-mako glslang-tools vulkan-tools python-is-python3 \
-              g++-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf \
-              pkg-config:arm64 zlib1g-dev:arm64 libexpat1-dev:arm64 libdrm-dev:arm64 libx11-dev:arm64 \
-              libx11-xcb-dev:arm64 libxext-dev:arm64 libxdamage-dev:arm64 libxcb-glx0-dev:arm64 \
-              libxcb-dri2-0-dev:arm64 libxcb-dri3-dev:arm64 libxcb-shm0-dev:arm64 libxcb-present-dev:arm64 \
-              libxshmfence-dev:arm64 libxxf86vm-dev:arm64 libxrandr-dev:arm64 libglvnd-dev:arm64 \
-              libwayland-dev:arm64 wayland-protocols:arm64 libwayland-egl-backend-dev:arm64 \
-              pkg-config:armhf zlib1g-dev:armhf libexpat1-dev:armhf libdrm-dev:armhf libx11-dev:armhf \
-              libx11-xcb-dev:armhf libxext-dev:armhf libxdamage-dev:armhf libxcb-glx0-dev:armhf \
-              libxcb-dri2-0-dev:armhf libxcb-dri3-dev:armhf libxcb-shm0-dev:armhf libxcb-present-dev:armhf \
-              libxshmfence-dev:armhf libxxf86vm-dev:armhf libxrandr-dev:armhf libglvnd-dev:armhf \
-              libwayland-dev:armhf wayland-protocols:armhf libwayland-egl-backend-dev:armhf \
+          sudo apt-get install -y --no-install-recommends \
+            ccache meson python3-pip flex bison python3-mako glslang-tools \
+            python-is-python3 \
+            g++-${{ matrix.triple }} gcc-${{ matrix.triple }} \
+            pkg-config:${{ matrix.arch }} \
+            zlib1g-dev:${{ matrix.arch }} \
+            libexpat1-dev:${{ matrix.arch }} \
+            libdrm-dev:${{ matrix.arch }} \
+            libx11-dev:${{ matrix.arch }} \
+            libx11-xcb-dev:${{ matrix.arch }} \
+            libxext-dev:${{ matrix.arch }} \
+            libxdamage-dev:${{ matrix.arch }} \
+            libxcb-glx0-dev:${{ matrix.arch }} \
+            libxcb-dri2-0-dev:${{ matrix.arch }} \
+            libxcb-dri3-dev:${{ matrix.arch }} \
+            libxcb-shm0-dev:${{ matrix.arch }} \
+            libxcb-present-dev:${{ matrix.arch }} \
+            libxshmfence-dev:${{ matrix.arch }} \
+            libxxf86vm-dev:${{ matrix.arch }} \
+            libxrandr-dev:${{ matrix.arch }} \
+            libglvnd-dev:${{ matrix.arch }} \
+            libwayland-dev:${{ matrix.arch }} \
+            wayland-protocols:${{ matrix.arch }} \
+            libwayland-egl-backend-dev:${{ matrix.arch }}
 
       - name: Build Mesa with Turnip
+        env:
+          # ccache defaults to ~/.ccache; set size ceiling here so the
+          # cache step above and the build step agree on the directory.
+          CCACHE_MAXSIZE: 2G
         run: |
-          echo "Building Mesa version: $MESA_VERSION"
+          echo "Building Mesa $MESA_VERSION for ${{ matrix.arch }}"
           chmod +x build_turnip.sh
-          bash build_turnip.sh "$MESA_VERSION"
+          bash build_turnip.sh "$MESA_VERSION" "${{ matrix.arch }}"
 
-      - name: Upload ARM64 Artifact
+      # Visible in the Actions log — useful for confirming the cache is actually
+      # being hit and for tuning CCACHE_MAXSIZE if needed.
+      - name: Show ccache statistics
+        if: always()
+        run: ccache --show-stats
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mesa-turnip-${{ env.MESA_VERSION }}-arm64
-          path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-arm64.deb
-
-      - name: Upload ARMHF Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mesa-turnip-${{ env.MESA_VERSION }}-armhf
-          path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-armhf.deb
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: mesa-builds
-          path: |
-            ~/mesa-*/build-*
-            ~/mesa-*/install-*
-
-
-
-
+          name: mesa-turnip-${{ env.MESA_VERSION }}-${{ matrix.arch }}
+          path: ~/mesa-build/mesa-vulkan-kgsl_${{ env.MESA_VERSION }}-*-${{ matrix.arch }}.deb
