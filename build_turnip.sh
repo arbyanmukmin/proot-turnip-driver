@@ -283,7 +283,10 @@ esac
 
 echo -e "${GREEN}Mesa $MESA_VERSION cross-compiled successfully!${NC}"
 echo -e "${GREEN}Output files:${NC}"
-[ "$ARCH_FILTER" = "all" ] || [ "$ARCH_FILTER" = "arm64" ] && \
+
+if [ "$ARCH_FILTER" = "all" ] || [ "$ARCH_FILTER" = "arm64" ]; then
     echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-arm64.deb"
-[ "$ARCH_FILTER" = "all" ] || [ "$ARCH_FILTER" = "armhf" ] && \
+fi
+if [ "$ARCH_FILTER" = "all" ] || [ "$ARCH_FILTER" = "armhf" ]; then
     echo -e "  - $OUTPUT_DIR/mesa-vulkan-kgsl_$MESA_VERSION-$BUILD_DATE-armhf.deb"
+fi
