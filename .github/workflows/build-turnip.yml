@@ -56,7 +56,7 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v5.0.5
         with:
-          path: /var/cache/apt/archives
+          path: ~/apt-cache
           key: apt-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build-turnip.yml') }}
           restore-keys: apt-${{ matrix.arch }}-
 
@@ -84,7 +84,9 @@ jobs:
 
       - name: Install build tools and cross-compile dependencies
         run: |
+          mkdir -p ~/apt-cache
           sudo apt-get install -y --no-install-recommends \
+            -o Dir::Cache::archives="$HOME/apt-cache" \
             ccache meson python3-pip flex bison python3-mako glslang-tools \
             python-is-python3 \
             g++-${{ matrix.triple }} gcc-${{ matrix.triple }} \
@@ -108,6 +110,10 @@ jobs:
             libwayland-dev:${{ matrix.arch }} \
             wayland-protocols:${{ matrix.arch }} \
             libwayland-egl-backend-dev:${{ matrix.arch }}
+
+      - name: Trim APT cache
+        if: always()
+        run: sudo apt-get clean && find ~/apt-cache -name "lock" -o -name "partial" -type d | xargs rm -rf
 
       - name: Build Mesa with Turnip
         env:
